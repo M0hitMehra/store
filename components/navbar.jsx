@@ -40,7 +40,7 @@ const Navbar = () => {
         "Travel Store",
         "Terrace",
         "Nitro Collection",
-        "Kids' Store",
+        "Kids Store",
       ],
       rightSide: [
         {
@@ -138,7 +138,7 @@ const Navbar = () => {
     {
       category: "Kids",
       leftSide: [
-        "Kids' Store",
+        "Kids Store",
         "New & Trending",
         "School Store",
         "Shoes Under $100",
@@ -149,7 +149,7 @@ const Navbar = () => {
       ],
       rightSide: [
         {
-          title: "Season's Favourites",
+          title: "Seasons Favourites",
           values: [
             "Summer Camp",
             "PUMA x TROLLS",

@@ -74,7 +74,7 @@ const Login = () => {
             </Button>
           </form>
           <span className="text-sm font-light mt-4">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <span
               className="text-sm font-medium hover:text-blue-600 text-blue-500 cursor-pointer"
               onClick={() => router.push("/signup")}

@@ -9,6 +9,7 @@ import Banners from "./_components/banners";
 import { useEffect, useState } from "react";
 import Slider from "@/components/slider";
 import axios from "axios";
+import { server } from "@/lib/utils";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -22,9 +23,7 @@ export default function Home() {
     // Function to fetch product data
     const fetchProductData = async () => {
       try {
-        const { data } = await axios.get(
-          "http://localhost:8080/api/v1/products"
-        );
+        const { data } = await axios.get(`${server}/products`);
         if (data.success) {
           setProductData(data.products);
         } else {

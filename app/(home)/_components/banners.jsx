@@ -25,7 +25,7 @@ const Banners = () => {
               )}
             >
               <p className={`text-[2.5rem] font-bold ${roboto.className}`}>
-                CAN'T WAIT FOR SALE?
+                CAN&apos;T WAIT FOR SALE?
               </p>
               <p className=" text-[1.5rem] font-semibold">
                 SHOP NOW AT EXTRA OFF ON SELECT STYLES

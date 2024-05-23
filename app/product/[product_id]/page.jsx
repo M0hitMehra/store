@@ -7,7 +7,7 @@ import clsx from "clsx";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "../../globals.css";
-import { cn } from "@/lib/utils";
+import { cn, server } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const ProductDetails = ({ params }) => {
@@ -36,13 +36,13 @@ const ProductDetails = ({ params }) => {
     const fetchProductDetails = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:8080/api/v1/product/${product_id}`
+          `${server}/product/${product_id}`
         );
         if (data.success) {
           setProductDetails(data?.product);
           setsSelectedSize(data?.product?.size?.[0]?._id);
           const productWithDifferentAttributes = await axios.get(
-            `http://localhost:8080/api/v1/products`,
+            `${server}/products`,
             {
               params: { title: data?.product?.title },
             }
