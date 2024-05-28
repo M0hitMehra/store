@@ -7,7 +7,7 @@ const useProtectedRoute = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
   const router = useRouter();
-
+  console.log("useProtectedRoute user", user);
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");

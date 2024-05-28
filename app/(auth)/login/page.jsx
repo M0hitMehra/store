@@ -1,21 +1,28 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Separator } from "@/components/ui/separator";
 import { server } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import axios from "axios";
 import useProtectedRoute from "@/hooks/useProtectedRoute";
-import { Loader } from "lucide-react";
+import { EyeIcon, EyeOff } from "lucide-react";
+import Loader from "@/components/loader";
+import useAuthStore from "@/stores/useAuthStore";
 
 const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeInput, setActiveInput] = useState(null);
+
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
 
   const { toast } = useToast();
   const { user, loading } = useProtectedRoute();
@@ -24,6 +31,7 @@ const Login = () => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(String(email).toLowerCase());
   };
+  const setUser = useAuthStore((state) => state.setUser);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -39,21 +47,31 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const { data } = await axios.post(`${server}/auth/login`, {
-        email,
-        password,
-      });
+      const { data } = await axios.post(
+        `${server}/auth/login`,
+        {
+          email,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, // Include this line
+        }
+      );
       if (data?.success) {
+        setUser(data.user);
+
         setIsLoading(false);
         toast({
-          variant: "secondary",
           title: "Logged in successfully",
           description: `Welcome to the store ${data?.user?.firstName}`,
         });
         router.push("/dashboard");
       }
     } catch (error) {
-      console.error(error);
+      console.error("error", error);
       setEmail("");
       setPassword("");
       setIsLoading(false);
@@ -74,8 +92,7 @@ const Login = () => {
       });
     }
   };
-
-  if (loading) {
+   if (loading) {
     return <Loader />;
   }
 
@@ -83,61 +100,79 @@ const Login = () => {
     router.push("/dashboard");
   }
 
+  const handlePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+    setTimeout(() => {
+      if (activeInput === "password" && passwordRef.current) {
+        passwordRef.current.focus();
+        passwordRef.current.setSelectionRange(password.length, password.length);
+      }
+    }, 0);
+  };
+
   return (
-    <div className="h-screen w-screen fixed flex justify-center items-center bg-slate-100">
-      <div className="border-[0.6px] border-neutral-500 shadow-md shadow-black rounded-lg h-3/5 w-1/2 mb-20 grid grid-cols-7">
-        <img
-          src="/loginSideScreen.avif"
-          alt="Login"
-          className="col-span-3 h-full w-full rounded-l-md"
-        />
-        <div className="col-span-4 flex flex-col w-full justify-start items-center p-6 px-10 gap-4">
-          <h1 className="text-2xl font-bold pb-2">Login</h1>
-          <Separator />
-          <form
-            onSubmit={onSubmit}
-            className="flex flex-col w-full justify-start items-center my-5 mt-6 gap-6"
-          >
+    <div className="h-screen w-screen flex justify-center items-center bg-gray-100 fixed pb-10">
+      <div className="flex flex-col items-center bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
+        <h1 className="text-3xl font-semibold mb-4">Login</h1>
+        <Separator />
+        <form onSubmit={onSubmit} className="flex flex-col w-full mt-4">
+          <input
+            type="email"
+            ref={emailRef}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError("");
+            }}
+            onFocus={() => setActiveInput("email")}
+            className="w-full p-3 border rounded mt-4"
+            placeholder="Enter your email"
+            aria-label="Email"
+          />
+          <div className="relative w-full mt-4">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError("");
-              }}
-              className="w-full outline-none focus:outline-[0.6px] focus:outline-blue-300 rounded-sm p-3 outline-[0.6px] outline-neutral-500"
-              placeholder="Enter your email"
-              aria-label="Email"
-            />
-            <input
-              type="password"
+              type={passwordVisible ? "text" : "password"}
+              ref={passwordRef}
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
                 setError("");
               }}
-              className="w-full outline-none focus:outline-[0.6px] focus:outline-blue-300 rounded-sm p-3 outline-[0.6px] outline-neutral-500"
+              onFocus={() => setActiveInput("password")}
+              className="w-full p-3 border rounded pr-10"
               placeholder="Enter your password"
               aria-label="Password"
             />
-            {error && <span className="text-red-500 text-sm">{error}</span>}
-            <Button
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-md transition duration-300"
-              disabled={isLoading}
-            >
-              {isLoading ? "Logging in..." : "Login"}
-            </Button>
-          </form>
-          <span className="text-sm font-light mt-4">
-            Don&apos;t have an account?{" "}
-            <span
-              className="text-sm font-medium hover:text-blue-600 text-blue-500 cursor-pointer"
-              onClick={() => router.push("/signup")}
-            >
-              Sign up here
-            </span>
+            {passwordVisible ? (
+              <EyeIcon
+                onClick={handlePasswordVisibility}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 cursor-pointer w-5"
+              />
+            ) : (
+              <EyeOff
+                onClick={handlePasswordVisibility}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 cursor-pointer w-5"
+              />
+            )}
+          </div>
+          {error && <span className="text-red-500 text-sm mt-2">{error}</span>}
+          <Button
+            className="w-full bg-black text-white font-semibold py-3 rounded mt-6"
+            disabled={isLoading}
+            type="submit"
+          >
+            {isLoading ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+        <span className="text-sm font-light mt-6">
+          Don&apos;t have an account?{" "}
+          <span
+            className="text-sm font-medium text-blue-500 cursor-pointer"
+            onClick={() => router.push("/signup")}
+          >
+            Sign up here
           </span>
-        </div>
+        </span>
       </div>
     </div>
   );
