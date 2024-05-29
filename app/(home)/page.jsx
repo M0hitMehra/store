@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import Slider from "@/components/slider";
 import axios from "axios";
 import { server } from "@/lib/utils";
+import Loader from "@/components/loader";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -42,11 +43,17 @@ export default function Home() {
 
   return (
     <div className=" flex flex-col gap-5">
-      {/* Promotional Banner */}
-      <Banners />
+      {productData && productData?.length > 0 ? (
+        <>
+          {/* Promotional Banner */}
+          <Banners />
 
-      {/* Recommended */}
-      <Slider data={productData} />
+          {/* Recommended */}
+          <Slider data={productData} />
+        </>
+      ) : (
+        <Loader />
+      )}
     </div>
   );
 }

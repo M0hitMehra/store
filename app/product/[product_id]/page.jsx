@@ -30,8 +30,7 @@ const ProductDetails = ({ params }) => {
   // Example usage:
   const input = 6999;
   const output = formatNumberWithCommas(input);
-  console.log(output); // Output: 6,999
-
+ 
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
