@@ -1,7 +1,6 @@
-"use client";
-// context/authContext.js
+'use client'
+
 import { createContext, useContext, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import useAuthStore from "@/stores/useAuthStore";
 import { server } from "@/lib/utils";
@@ -11,35 +10,29 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const setUser = useAuthStore((state) => state.setUser);
   const setLoading = useAuthStore((state) => state.setLoading);
-  const loading = useAuthStore((state) => state.loading);
 
   useEffect(() => {
     const checkUserLoggedIn = async () => {
       try {
-        const res = await axios.get(
-          server + "/auth/user",
-          {},
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            withCredentials: true, // Include this line
-          }
-        );
+        const res = await axios.get(`${server}/auth/user`, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        });
         setUser(res.data.user);
-        console.log("res.data.user", res.data.user);
       } catch (err) {
+        console.error(err);
         setUser(null);
-        console.log("err.user", err);
       }
       setLoading(false);
     };
 
     checkUserLoggedIn();
-  }, [loading, setLoading, setUser]);
+  }, [setUser, setLoading]);
 
   return (
-    <AuthContext.Provider value={{ loading }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{}}>{children}</AuthContext.Provider>
   );
 };
 
