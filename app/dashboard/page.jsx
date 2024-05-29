@@ -3,7 +3,7 @@ import Loader from "@/components/loader";
 import useProtectedRoute from "@/hooks/useProtectedRoute";
 import React from "react";
 
-const dashboard = () => {
+const Dashboard = () => {
   const { user, loading } = useProtectedRoute();
 
   if (loading) {
@@ -12,4 +12,4 @@ const dashboard = () => {
   return <div>dashboard</div>;
 };
 
-export default dashboard;
+export default Dashboard;
