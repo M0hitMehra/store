@@ -9,10 +9,11 @@ import { useRouter } from "next/navigation";
 import pumaLogo from "@/public/puma-logo.svg";
 import Image from "next/image";
 import UserDropDown from "./userDropDown";
+import MobileNavbar from "./mobile-navbar";
 
 const Navbar = () => {
-  const [hoveredLink, setHoveredLink] = useState("");
   const router = useRouter();
+  const [hoveredLink, setHoveredLink] = useState("");
 
   //   Navbar Category Links
   const links = [
@@ -653,7 +654,8 @@ const Navbar = () => {
 
   return (
     <section className="  sticky top-0 z-50 ">
-      <nav className=" grid grid-cols-12 px-5 py-5 bg-neutral-900">
+      {/* Desktop */}
+      <nav className="hidden xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900">
         <div className=" col-span-8 flex gap-10 justify-start items-center">
           {/* Logo */}
           <Image
@@ -723,6 +725,9 @@ const Navbar = () => {
           <UserDropDown />
         </div>
       </nav>
+
+
+      <MobileNavbar links={links} navLinksDropDown={navLinksDropDown} />
 
       {navLinksDropDown?.map(
         (item) =>
