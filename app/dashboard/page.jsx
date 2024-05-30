@@ -9,7 +9,7 @@ const Dashboard = () => {
   if (loading) {
     return <Loader />;
   }
-  return <div>dashboard</div>;
+  return <div className=" pt-20">dashboard</div>;
 };
 
 export default Dashboard;

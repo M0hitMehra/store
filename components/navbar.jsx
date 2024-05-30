@@ -655,7 +655,7 @@ const Navbar = () => {
   return (
     <section className="  sticky top-0 z-50 ">
       {/* Desktop */}
-      <nav className="hidden lg:grid lg:grid-cols-12 px-5 py-5 bg-neutral-900">
+      <nav className="hidden xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900">
         <div className=" col-span-8 flex gap-10 justify-start items-center">
           {/* Logo */}
           <Image
