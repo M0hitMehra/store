@@ -13,7 +13,7 @@ const useProtectedRoute = () => {
       if (!user) {
         router.push("/login");
       } else {
-        router.push("/dashboard");
+        router.push("/");
       }
     }
   }, [user, loading, router]);
