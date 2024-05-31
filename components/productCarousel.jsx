@@ -9,18 +9,18 @@ import {
 
 const ProductCarousel = ({ images, color, onClick }) => {
   return (
-    <Carousel className="w-full max-w-xs">
+    <Carousel className="w-full max-w-[280px] md:max-w-xs">
       <CarouselContent onClick={onClick}>
         {images.map((image, index) => (
           <CarouselItem key={index}>
             <div className="p-1 relative">
-              <p className="absolute left-0 bg-red-500 text-white px-3 py-[0.9px] text-xs">
+              <p className="absolute left-0 bg-red-500 text-white px-3 py-[0.9px] text-xs md:text-sm">
                 -34%
               </p>
               <img
                 src={image?.url}
                 alt=""
-                className={`w-full h-full object-cover shadow-xl shadow-${color?.name}-200`}
+                className="w-full h-full object-cover"
               />
             </div>
           </CarouselItem>

@@ -12,7 +12,7 @@ const ProductCard = ({ detail, className }) => {
 
   return (
     <Card
-      className={clsx("w-[380px]  flex-shrink-0 cursor-pointer", className)}
+      className={clsx("w-[300px] md:w-[380px] flex-shrink-0 cursor-pointer", className)}
     >
       <CardContent className="relative">
         <ProductCarousel
@@ -22,11 +22,11 @@ const ProductCard = ({ detail, className }) => {
         />
       </CardContent>
       <CardFooter>
-        <div className=" grid grid-cols-6" onClick={onClick}>
-          <p className=" text-base font-semibold col-span-5">
+        <div className="grid grid-cols-6" onClick={onClick}>
+          <p className="text-sm md:text-base font-semibold col-span-5">
             {detail?.title?.slice(0, 50)} ...
           </p>
-          <span className=" text-sm  col-span-1">${detail?.price}</span>
+          <span className="text-xs md:text-sm col-span-1">${detail?.price}</span>
         </div>
       </CardFooter>
     </Card>

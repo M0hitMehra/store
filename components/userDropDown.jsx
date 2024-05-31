@@ -26,10 +26,13 @@ const UserDropDown = () => {
     const { data } = axios.get(`${server}/auth/logout`, {
       withCredentials: true,
     });
-    toast({
-      title: "Looged out successfully",
-    });
+    if (data?.success) {
+      toast({
+        title: "Looged out successfully",
+      });
+    }
   };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
