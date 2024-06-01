@@ -68,7 +68,7 @@ const Login = () => {
           title: "Logged in successfully",
           description: `Welcome to the store ${data?.user?.firstName}`,
         });
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
     } catch (error) {
       console.error("error", error);
@@ -78,15 +78,15 @@ const Login = () => {
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
-        description: "There was a problem with your request.",
+        description: "There was a problem while logging in",
         action: (
           <ToastAction
-            altText="Refresh"
+            altText="Register here"
             onClick={() => {
-              window.location.reload();
+              router.push('/signup');
             }}
           >
-            Refresh
+            Register
           </ToastAction>
         ),
       });

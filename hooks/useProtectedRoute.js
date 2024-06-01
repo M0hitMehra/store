@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/stores/useAuthStore";
@@ -12,8 +12,6 @@ const useProtectedRoute = () => {
     if (!loading) {
       if (!user) {
         router.push("/login");
-      } else {
-        router.push("/");
       }
     }
   }, [user, loading, router]);

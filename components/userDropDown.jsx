@@ -13,23 +13,31 @@ import { User } from "lucide-react";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import useProtectedRoute from "@/hooks/useProtectedRoute";
 import axios from "axios";
 import { server } from "@/lib/utils";
 import { toast } from "./ui/use-toast";
+import useAuthStore from "@/stores/useAuthStore";
 
 const UserDropDown = () => {
   const router = useRouter();
-  const { user, loading } = useProtectedRoute();
+  const setUser = useAuthStore((state) => state.setUser);
+  const user = useAuthStore((state) => state.user);
+  const loading = useAuthStore((state) => state.loading);
 
-  const logoutHandler = () => {
-    const { data } = axios.get(`${server}/auth/logout`, {
-      withCredentials: true,
-    });
-    if (data?.success) {
-      toast({
-        title: "Looged out successfully",
+  const logoutHandler = async () => {
+    try {
+      const { data } = await axios.get(`${server}/auth/logout`, {
+        withCredentials: true,
       });
+      if (data?.success) {
+        setUser(null);
+        router.push("/");
+        toast({
+          title: "Logged out successfully",
+        });
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 

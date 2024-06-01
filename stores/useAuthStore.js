@@ -1,5 +1,5 @@
 // stores/useAuthStore.js
-import {create} from "zustand";
+import { create } from "zustand";
 
 const useAuthStore = create((set) => ({
   user: null,
