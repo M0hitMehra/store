@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { createContext, useContext, useEffect } from "react";
 import axios from "axios";
@@ -31,9 +31,7 @@ export const AuthProvider = ({ children }) => {
     checkUserLoggedIn();
   }, [setUser, setLoading]);
 
-  return (
-    <AuthContext.Provider value={{}}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{}}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);
