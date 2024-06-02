@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { toast } from "@/components/ui/use-toast";
 
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
@@ -69,6 +70,28 @@ const ProductDetails = ({ params }) => {
 
     fetchProductDetails();
   }, [product_id]);
+
+  const addToWishlistHandler = async () => {
+    const productId = product_id
+    try {
+      const { data } = await axios.post(`${server}/auth/wishlist/${productId}`, {}, {
+        withCredentials: true, // Include credentials for cookies
+      });
+
+      if (data.success) {
+        toast({
+          variant: "success",
+          title: "Added to wishlist successfully",
+        });
+      }
+    } catch (error) {
+      console.error(error)
+      toast({
+        variant: "destructive",
+        title: "Failed to add to wishlist",
+      });
+    }
+  };
 
   if (loading) {
     return <Loader />;
@@ -241,7 +264,9 @@ const ProductDetails = ({ params }) => {
               </div>
               <div className="col-span-2 flex flex-col gap-2 md:gap-4 p-3 pl-0">
                 {productDetails?.stock > 0 && <Button>Add To Cart</Button>}
-                <Button variant={"outline"}>Add To Wishlist</Button>
+                <Button variant={"outline"} onClick={addToWishlistHandler}>
+                  Add To Wishlist
+                </Button>
               </div>
             </div>
           </div>
