@@ -33,7 +33,7 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
-    
+
   }
 
   .dark {
@@ -104,6 +104,26 @@ body,
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
+  background: #6b5b42;
+}
+
+.dashboard-top-bar::-webkit-scrollbar {
+  height: 1px;
+}
+
+/* Track */
+.dashboard-top-bar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+.dashboard-top-bar::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #8a7350, #6b5b42);
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+.dashboard-top-bar::-webkit-scrollbar-thumb:hover {
   background: #6b5b42;
 }
 
