@@ -14,7 +14,7 @@ const DashboardLayout = ({ children }) => {
     <div>
       <div className="xl:p-0 pt-20 flex">
         <DashboardSidebar />
-        <div className="mt-[16.6667%] md:ml-[16.6667%] flex-grow">{children}</div>
+        <div className="mt-[16.6667%] md:ml-[16.6667%] md:mt-0 flex-grow">{children}</div>
       </div>
     </div>
   );
