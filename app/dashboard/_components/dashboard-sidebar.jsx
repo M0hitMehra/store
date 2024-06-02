@@ -74,7 +74,7 @@ const DashboardSidebar = () => {
           <li className="flex-shrink-0">
             <Button
               variant={"destructive"}
-              className="block rounded-lg   p-2 text-sm  whitespace-nowrap"
+              className="block rounded-lg p-2 text-sm whitespace-nowrap"
               onClick={logoutHandler}
             >
               Logout
