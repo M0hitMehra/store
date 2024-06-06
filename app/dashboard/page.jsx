@@ -22,6 +22,8 @@ import CustomTooltip from "@/components/custom-tooltip";
 import axios from "axios";
 import { toast } from "@/components/ui/use-toast";
 import { Edit } from "lucide-react";
+import useAuthStore from "@/stores/useAuthStore";
+import imageCompression from "browser-image-compression";
 
 const ProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -32,23 +34,11 @@ const ProfileSchema = z.object({
 });
 
 const UserProfile = () => {
+  const setUser = useAuthStore((state) => state.setUser);
   const { user, loading } = useProtectedRoute();
   const [editMode, setEditMode] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setSelectedImage(null);
-    }
-  };
 
   const {
     register,
@@ -75,8 +65,8 @@ const UserProfile = () => {
     reset();
   };
 
-  const handleUpdateProfile = async (e, formData) => {
-    e.preventDefault();
+  const handleUpdateProfile = async (formData) => {
+    console.log(formData);
     // Implement the logic to update the user profile
     try {
       const { data } = await axios.post(
@@ -87,6 +77,7 @@ const UserProfile = () => {
         }
       );
       if (data?.success) {
+        setUser(data?.user);
         toast({
           variant: "success",
           title: "Profile updated successfully",
@@ -96,6 +87,73 @@ const UserProfile = () => {
       setOpen(false); // Close the dialog after submitting
     } catch (error) {
       console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error while updating user profile",
+      });
+      setOpen(false); // Close the dialog after submitting
+    }
+  };
+
+  const handleImageChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const maxSizeMB = 5; // Set the max file size limit (in MB)
+      if (file.size / 1024 / 1024 > maxSizeMB) {
+        toast({
+          variant: "destructive",
+          title: `File size should be less than ${maxSizeMB} MB`,
+        });
+        return;
+      }
+  
+      try {
+        const options = {
+          maxSizeMB: 1, // Max file size in MB for compression
+          maxWidthOrHeight: 1024, // Max width or height
+          useWebWorker: true, // Enable web worker for better performance
+        };
+        const compressedFile = await imageCompression(file, options);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setSelectedImage(reader.result);
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        console.error("Error compressing image:", error);
+        toast({
+          variant: "destructive",
+          title: "Error compressing image",
+        });
+      }
+    } else {
+      setSelectedImage(null);
+    }
+  };
+  
+  const handleUpdateProfileImage = async (e) => {
+    e.preventDefault();
+    try {
+      const { data } = await axios.post(
+        `${server}/auth/user/update/image`,
+        { image: selectedImage },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (data?.success) {
+        toast({
+          variant: "success",
+          title: "Profile picture updated successfully",
+        });
+      }
+      setEditMode(false);
+      setOpen(false); // Close the dialog after submitting
+    } catch (error) {
+      console.error("Error while updating user profile:", error);
       toast({
         variant: "destructive",
         title: "Error while updating user profile",
@@ -127,7 +185,9 @@ const UserProfile = () => {
               <DialogHeader>
                 <DialogTitle>Select an image to upload</DialogTitle>
                 <DialogDescription>
-                  <form onSubmit={handleUpdateProfile}>
+                  <form
+                    onSubmit={(e) => handleUpdateProfileImage(e, selectedImage)}
+                  >
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Upload image
