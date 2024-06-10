@@ -83,7 +83,7 @@ const Login = () => {
           <ToastAction
             altText="Register here"
             onClick={() => {
-              router.push('/signup');
+              router.push("/signup");
             }}
           >
             Register
@@ -92,7 +92,7 @@ const Login = () => {
       });
     }
   };
-   if (loading) {
+  if (loading) {
     return <Loader />;
   }
 
@@ -179,3 +179,5 @@ const Login = () => {
 };
 
 export default Login;
+
+

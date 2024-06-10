@@ -23,7 +23,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
   const [isMobileMenu, setIsMobileMenu] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   return (
-    <div className="xl:hidden flex flex-col  w-full">
+    <div className="xl:hidden sticky flex flex-col  w-full">
       <div className="xl:hidden flex justify-between items-center w-full fixed p-4 bg-neutral-900 z-10">
         {/* Logog */}
         <Image
