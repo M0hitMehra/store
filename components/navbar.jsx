@@ -726,7 +726,6 @@ const Navbar = () => {
         </div>
       </nav>
 
-
       <MobileNavbar links={links} navLinksDropDown={navLinksDropDown} />
 
       {navLinksDropDown?.map(

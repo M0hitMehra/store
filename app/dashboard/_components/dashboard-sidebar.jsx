@@ -7,10 +7,10 @@ import useAuthStore from "@/stores/useAuthStore";
 import { server } from "@/lib/utils";
 
 const DashboardSidebar = () => {
-  const setUser = useAuthStore((state) => state.setUser);
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
-
+  
+  const setUser = useAuthStore((state) => state.setUser);
   const logoutHandler = async () => {
     try {
       const { data } = await axios.get(`${server}/auth/logout`, {
@@ -38,19 +38,21 @@ const DashboardSidebar = () => {
 
   return (
     <>
-      <div className="fixed  hidden md:block h-screen w-1/6 border-r-2 border-black p-4">
+      <div className="fixed  hidden md:block h-screen w-1/6 border-r-2 border-black p-4 bg-gradient-to-r from-slate-500 to-slate-800 shadow-lg shadow-black">
         <ul className="space-y-4">
           {links.map(({ href, label }) => (
             <li key={href}>
               <Link href={href} legacyBehavior>
-                <a className="block p-2 hover:bg-gray-200 rounded">{label}</a>
+                <a className="block p-2 hover:bg-gray-200 rounded  text-neutral-200 hover:text-black ">
+                  {label}
+                </a>
               </Link>
             </li>
           ))}
           <li>
             <Button
               variant={"destructive"}
-              className="block p-2 w-full rounded"
+              className="block p-2 w-full rounded   "
               onClick={logoutHandler}
             >
               Logout
