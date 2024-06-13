@@ -7,10 +7,10 @@ import useAuthStore from "@/stores/useAuthStore";
 import { server } from "@/lib/utils";
 
 const DashboardSidebar = () => {
-  const setUser = useAuthStore((state) => state.setUser);
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
-
+  
+  const setUser = useAuthStore((state) => state.setUser);
   const logoutHandler = async () => {
     try {
       const { data } = await axios.get(`${server}/auth/logout`, {

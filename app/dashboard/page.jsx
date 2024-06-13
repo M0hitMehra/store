@@ -8,8 +8,10 @@ import clsx from "clsx";
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -24,6 +26,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Edit, ShieldBan } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
 import imageCompression from "browser-image-compression";
+import { useRouter } from "next/navigation";
 
 const ProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -35,6 +38,7 @@ const ProfileSchema = z.object({
 
 const UserProfile = () => {
   const setUser = useAuthStore((state) => state.setUser);
+  const router = useRouter();
   const { user, loading } = useProtectedRoute();
   const [editMode, setEditMode] = useState(false);
   const [open, setOpen] = useState(false);
@@ -164,6 +168,29 @@ const UserProfile = () => {
     }
   };
 
+  const handleDeleteProfile = async () => {
+    try {
+      const { data } = await axios.delete(`${server}/auth/user/delete`, {
+        withCredentials: true,
+      });
+      if (data?.success) {
+        setUser(null);
+        router.push("/");
+
+        toast({
+          title: "User deleted successfully",
+          variant: "success",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Failed to delete user",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -173,18 +200,21 @@ const UserProfile = () => {
   const watchedFields = watch();
 
   return (
-    <div className=" px-20 py-5 flex justify-center items-center ">
-      <div className="p-4 grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8  justify-center items-center   bg-gradient-to-r from-violet-600 to-indigo-600 rounded-lg">
-        <div className="    col-span-1 md:col-span-2 flex flex-col gap-6 justify-center items-center p-4 md:p-8">
-          <div className=" relative rounded-full ">
+    <div className="px-5 py-5 md:px-20 md:py-10 flex justify-center items-center fixed -mt-10  h-screen">
+      <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center ">
+        {/* give background blur */}
+        <div className="col-span-1 relative md:col-span-2 flex flex-col gap-6 justify-center items-center p-4 md:p-8     rounded-lg shadow-black shadow-sm ">
+          <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
+            {" "}
+          </div>
+          <div className="relative rounded-full">
             <img
               src={user?.avatar?.url}
-              className="rounded-full h-40 w-40 md:h-[250px] md:w-[300px] hover:opacity-95 hover:scale-105 transition-all "
+              className="rounded-full h-40 w-40 md:h-56 md:w-56 hover:opacity-95 shadow-md hover:scale-105 transition-all"
             />
-
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Edit className="absolute top-0 left-0 cursor-pointer" />
+                <Edit className="absolute top-0 left-0 cursor-pointer text-gray-500 hover:text-gray-700" />
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -232,7 +262,10 @@ const UserProfile = () => {
                           <img
                             src={selectedImage}
                             alt="Selected Preview"
-                            className="w-full h-auto rounded-md"
+                            className="w-full   rounded-md"
+                            style={{
+                              height: '300px',
+                            }}
                           />
                         </div>
                       )}
@@ -249,39 +282,81 @@ const UserProfile = () => {
             </Dialog>
           </div>
           <Button
-            className={clsx("w-full", { "bg-blue-500": editMode })}
+            className={`w-full z-20 shadow-md ${
+              editMode ? "bg-blue-500" : "bg-gray-500"
+            }`}
             onClick={handleEditClick}
           >
             Edit profile
           </Button>
-          <Button className="w-full">Reset password</Button>
-          <Button className="w-full">Forget password</Button>
-          <Button variant="destructive" className="w-full">
-            Delete my profile
+          <Button className="w-full shadow-md z-20 bg-blue-500">
+            Reset password
+          </Button>
+          <Button className="w-full shadow-md z-20 bg-blue-500">
+            Forget password
+          </Button>
+          <Button
+            variant="destructive"
+            className="w-full z-20 shadow-md bg-red-500"
+          >
+            <Dialog>
+              <DialogTrigger>Delete my profile</DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    Are you sure you want to delete your account
+                  </DialogTitle>
+                  <DialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your account and remove your data from our servers.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="sm:justify-start">
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Close
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDeleteProfile}
+                  >
+                    Confirm
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </Button>
         </div>
-        <div className=" col-span-1 shadow-sm rounded-md shadow-white md:col-span-6 p-4 md:p-10 flex flex-col gap-6 md:gap-10 justify-center">
+
+        {/* give background blur */}
+
+        <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-4 md:p-8   rounded-lg shadow-black shadow-sm  h-full">
+          <div className=" absolute backdrop-blur-sm top-0 left-0 blur-md bg-white/30 h-full w-full rounded-lg">
+            {" "}
+          </div>
           {editMode ? (
             <form
               onSubmit={handleSubmit(handleUpdateProfile)}
-              className=" flex flex-col gap-6 justify-center p-4  "
+              className="flex flex-col gap-6 justify-cente z-20"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="flex flex-col">
                   <label
                     htmlFor="firstName"
-                    className="text-lg font-bold mb-2 text-white"
+                    className="text-lg font-bold mb-2 text-gray-700"
                   >
                     First Name
                   </label>
                   <input
                     {...register("firstName")}
                     id="firstName"
-                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-white focus:ring-white transition duration-150 ease-in-out shadow-sm"
+                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
                     placeholder="First Name"
                   />
                   {errors.firstName && (
-                    <p className="text-yellow-200 text-sm mt-2">
+                    <p className="text-red-500 text-sm mt-2">
                       {errors.firstName.message}
                     </p>
                   )}
@@ -289,18 +364,18 @@ const UserProfile = () => {
                 <div className="flex flex-col">
                   <label
                     htmlFor="lastName"
-                    className="text-lg font-bold mb-2 text-white"
+                    className="text-lg font-bold mb-2 text-gray-700"
                   >
                     Last Name
                   </label>
                   <input
                     {...register("lastName")}
                     id="lastName"
-                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-white focus:ring-white transition duration-150 ease-in-out shadow-sm"
+                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
                     placeholder="Last Name"
                   />
                   {errors.lastName && (
-                    <p className="text-yellow-200 text-sm mt-2">
+                    <p className="text-red-500 text-sm mt-2">
                       {errors.lastName.message}
                     </p>
                   )}
@@ -308,21 +383,21 @@ const UserProfile = () => {
                 <div className="flex flex-col">
                   <label
                     htmlFor="phone"
-                    className="text-lg font-bold mb-2 text-white"
+                    className="text-lg font-bold mb-2 text-gray-700"
                   >
                     Phone Number
                   </label>
                   <input
                     {...register("phone")}
                     id="phone"
-                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-white focus:ring-white transition duration-150 ease-in-out shadow-sm"
+                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
                     placeholder="Phone Number"
                   />
                 </div>
                 <div className="flex flex-col">
                   <label
                     htmlFor="email"
-                    className="text-lg font-bold mb-2 text-white"
+                    className="text-lg font-bold mb-2 text-gray-700"
                   >
                     Email
                   </label>
@@ -334,7 +409,7 @@ const UserProfile = () => {
                     placeholder="Email"
                   />
                   {errors.email && (
-                    <p className="text-yellow-200 text-sm mt-2">
+                    <p className="text-red-500 text-sm mt-2">
                       {errors.email.message}
                     </p>
                   )}
@@ -342,14 +417,14 @@ const UserProfile = () => {
                 <div className="md:col-span-2 flex flex-col">
                   <label
                     htmlFor="address"
-                    className="text-lg font-bold mb-2 text-white"
+                    className="text-lg font-bold mb-2 text-gray-700"
                   >
                     Address
                   </label>
                   <input
                     {...register("address")}
                     id="address"
-                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-white focus:ring-white transition duration-150 ease-in-out shadow-sm"
+                    className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
                     placeholder="Address"
                   />
                 </div>
@@ -372,8 +447,8 @@ const UserProfile = () => {
               </div>
             </form>
           ) : (
-            <div className=" w-full  flex flex-col gap-6 justify-center p-4 ">
-              <div className="grid grid-cols-3 gap-4 items-center ">
+            <div className=" z-20 w-full flex flex-col gap-6 justify-center p-4">
+              <div className="grid grid-cols-3 gap-4 items-center">
                 <TypographyH3>First Name:</TypographyH3>
                 <TypographyP>{checkDataIsEmpty(user?.firstName)}</TypographyP>
               </div>
@@ -393,11 +468,9 @@ const UserProfile = () => {
                     <Dialog>
                       <DialogTrigger>
                         <span
-                          className={clsx(
-                            "cursor-pointer ml-5",
-                            { "text-red-400": user?.verified === false },
-                            { "text-green-400": user?.verified === true }
-                          )}
+                          className={`cursor-pointer ml-5 ${
+                            user?.verified ? "text-green-400" : "text-red-400"
+                          }`}
                         >
                           {user?.verified ? "" : "Not Verified"}
                         </span>
@@ -415,11 +488,7 @@ const UserProfile = () => {
                       </DialogContent>
                     </Dialog>
                   ) : (
-                    <span
-                      className={clsx("cursor-pointer ml-5 font-semibold", {
-                        "text-green-400": user?.verified === true,
-                      })}
-                    >
+                    <span className="cursor-pointer ml-5 font-semibold text-green-400">
                       Verified
                     </span>
                   )}
@@ -439,7 +508,7 @@ const UserProfile = () => {
               </div>
             </div>
           )}
-        </div>{" "}
+        </div>
       </div>
     </div>
   );

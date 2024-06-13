@@ -12,9 +12,9 @@ const DashboardLayout = ({ children }) => {
   }
   return (
     <div>
-      <div className=" pt-20 flex min-h-screen">
+      <div className="xl:p-0 pt-20 flex min-h-screen">
         <DashboardSidebar />
-        <div className="mt-[16.6667%] md:ml-[16.6667%] md:mt-0 flex-grow ">
+        <div className="mt-[16.6667%] md:ml-[16.6667%] md:mt-0 flex-grow bg-gradient-to-r  from-purple-600 to-indigo-600  ">
           {children}
         </div>
       </div>
