@@ -140,6 +140,13 @@ const UserProfile = () => {
   const handleUpdateProfileImage = async (e) => {
     e.preventDefault();
     try {
+      if (user?.verified === false) {
+        toast({
+          variant: "destructive",
+          title: "Only verified users can update profile image.",
+        });
+        return;
+      }
       const { data } = await axios.post(
         `${server}/auth/user/update/image`,
         { image: selectedImage },
@@ -264,7 +271,7 @@ const UserProfile = () => {
                             alt="Selected Preview"
                             className="w-full   rounded-md"
                             style={{
-                              height: '300px',
+                              height: "300px",
                             }}
                           />
                         </div>
