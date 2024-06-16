@@ -10,6 +10,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const setUser = useAuthStore((state) => state.setUser);
   const setLoading = useAuthStore((state) => state.setLoading);
+  const user = useAuthStore((state) => state.user);
+  const loading = useAuthStore((state) => state.loading); 
 
   useEffect(() => {
     const checkUserLoggedIn = async () => {
@@ -31,7 +33,7 @@ export const AuthProvider = ({ children }) => {
     checkUserLoggedIn();
   }, [setUser, setLoading]);
 
-  return <AuthContext.Provider value={{}}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);
