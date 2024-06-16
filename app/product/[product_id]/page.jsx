@@ -79,17 +79,18 @@ const ProductDetails = ({ params }) => {
         let wishlist = user?.wishlist;
         let doesExist = wishlist?.includes(product_id);
         setisPresentOnWishList(doesExist);
-
+        console.log(user);
         const historyResponse = await axios.post(
           `${server}/auth/user/history/${product_id}`,
           {},
           {
+            headers: { "Content-Type": "application/json" },
             withCredentials: true,
           }
         );
       }
     })();
-  }, [user]);
+  }, [user, product_id]);
 
   const addToWishlistHandler = async () => {
     if (!user) {
