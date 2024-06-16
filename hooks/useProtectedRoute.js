@@ -12,7 +12,7 @@ const useProtectedRoute = () => {
     if (!loading) {
       if (!user) {
         router.push("/login");
-      }
+      }   
     }
   }, [user, loading, router]);
 

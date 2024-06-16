@@ -5,11 +5,15 @@ import axios from "axios";
 import { toast } from "../../../components/ui/use-toast";
 import useAuthStore from "@/stores/useAuthStore";
 import { server } from "@/lib/utils";
+import clsx from "clsx";
+import { usePathname } from "next/navigation";
 
 const DashboardSidebar = () => {
   const user = useAuthStore((state) => state.user);
   const loading = useAuthStore((state) => state.loading);
-  
+  const pathname = usePathname()
+
+
   const setUser = useAuthStore((state) => state.setUser);
   const logoutHandler = async () => {
     try {
@@ -43,7 +47,15 @@ const DashboardSidebar = () => {
           {links.map(({ href, label }) => (
             <li key={href}>
               <Link href={href} legacyBehavior>
-                <a className="block p-2 hover:bg-gray-200 rounded  text-neutral-200 hover:text-black ">
+                <a
+                  className={clsx(
+                    "block p-2 hover:bg-gray-300 rounded text-neutral-200 hover:text-black",
+                    {
+                      "bg-neutral-100 text-gray-900 hover:bg-neutral-100 rounded hover:text-gray-900":
+                        pathname === href,
+                    }
+                  )}
+                >
                   {label}
                 </a>
               </Link>

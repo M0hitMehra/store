@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/authContext";
 
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
@@ -28,7 +29,11 @@ const ProductDetails = ({ params }) => {
   const [selectedSize, setsSelectedSize] = useState("");
   const [selectedStock, setSelectedStock] = useState(1);
   const [error, setError] = useState(null);
-  const [isCarouselOpen, setIsCarouselOpen] = useState(false);
+  const [buttonLoadingState, setButtonLoadingState] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+
+  const [isPresentOnWishList, setisPresentOnWishList] = useState(false);
+
   const router = useRouter();
 
   function formatNumberWithCommas(number) {
@@ -38,10 +43,6 @@ const ProductDetails = ({ params }) => {
     return number.toLocaleString();
   }
 
-  // Example usage:
-  const input = 6999;
-  const output = formatNumberWithCommas(input);
-
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
@@ -49,6 +50,7 @@ const ProductDetails = ({ params }) => {
         if (data.success) {
           setProductDetails(data?.product);
           setsSelectedSize(data?.product?.size?.[0]?._id);
+
           const productWithDifferentAttributes = await axios.get(
             `${server}/products`,
             {
@@ -71,25 +73,94 @@ const ProductDetails = ({ params }) => {
     fetchProductDetails();
   }, [product_id]);
 
+  useEffect(() => {
+    (async () => {
+      if (user) {
+        let wishlist = user?.wishlist;
+        let doesExist = wishlist?.includes(product_id);
+        setisPresentOnWishList(doesExist);
+
+        const historyResponse = await axios.post(
+          `${server}/auth/user/history/${product_id}`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+      }
+    })();
+  }, [user]);
+
   const addToWishlistHandler = async () => {
-    const productId = product_id
-    try {
-      const { data } = await axios.post(`${server}/auth/wishlist/${productId}`, {}, {
-        withCredentials: true, // Include credentials for cookies
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Please login to perfrom the action",
       });
+      return;
+    }
+    setButtonLoadingState(true);
+    const productId = product_id;
+    try {
+      const { data } = await axios.post(
+        `${server}/auth/wishlist/${productId}`,
+        {},
+        {
+          withCredentials: true, // Include credentials for cookies
+        }
+      );
 
       if (data.success) {
+        setisPresentOnWishList(true);
         toast({
           variant: "success",
           title: "Added to wishlist successfully",
         });
       }
+      setButtonLoadingState(false);
     } catch (error) {
-      console.error(error)
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Failed to add to wishlist",
       });
+      setButtonLoadingState(false);
+    }
+  };
+
+  const removeFromWishlistHandler = async () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Please login to perfrom the action",
+      });
+      return;
+    }
+    setButtonLoadingState(true);
+    const productId = product_id;
+    try {
+      const { data } = await axios.delete(
+        `${server}/auth/wishlist/remove/${productId}`,
+        {
+          withCredentials: true, // Include credentials for cookies
+        }
+      );
+
+      if (data.success) {
+        setisPresentOnWishList(false);
+        toast({
+          variant: "success",
+          title: "Removed from wishlist successfully",
+        });
+      }
+      setButtonLoadingState(false);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Failed to remove from wishlist",
+      });
+      setButtonLoadingState(false);
     }
   };
 
@@ -264,9 +335,25 @@ const ProductDetails = ({ params }) => {
               </div>
               <div className="col-span-2 flex flex-col gap-2 md:gap-4 p-3 pl-0">
                 {productDetails?.stock > 0 && <Button>Add To Cart</Button>}
-                <Button variant={"outline"} onClick={addToWishlistHandler}>
-                  Add To Wishlist
-                </Button>
+                {isPresentOnWishList ? (
+                  <Button
+                    variant={"outline"}
+                    onClick={removeFromWishlistHandler}
+                    disabled={buttonLoadingState}
+                  >
+                    {buttonLoadingState
+                      ? "Removing..."
+                      : "Remove From Wishlist"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant={"outline"}
+                    onClick={addToWishlistHandler}
+                    disabled={buttonLoadingState}
+                  >
+                    {buttonLoadingState ? "Adding..." : "Add To Wishlist"}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

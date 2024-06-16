@@ -59,7 +59,10 @@ const UserDropDown = () => {
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="px-4 pb-4 pt-1">
-        <DropdownMenuLabel className="text-base my-1 font-medium">
+        <DropdownMenuLabel
+          className="text-base my-1 font-medium cursor-pointer"
+          onClick={() => router.push("/dashboard")}
+        >
           My Account
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
