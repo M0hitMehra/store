@@ -13,14 +13,14 @@ const ProductCarousel = ({ images, color, onClick }) => {
       <CarouselContent onClick={onClick}>
         {images.map((image, index) => (
           <CarouselItem key={index}>
-            <div className="p-1 relative">
+            <div className="p-1 relative w-full h-[250px] md:h-[250px]">
               <p className="absolute left-0 bg-red-500 text-white px-3 py-[0.9px] text-xs md:text-sm">
                 -34%
               </p>
               <img
                 src={image?.url}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-lg"
               />
             </div>
           </CarouselItem>

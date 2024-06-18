@@ -3,11 +3,62 @@
 import Loader from "@/components/loader";
 import ProductCard from "@/components/productCard";
 import { server } from "@/lib/utils";
+import useCartStore from "@/stores/useCartStore";
+import useWishlistStore from "@/stores/useWishlistStore";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 const RecentlyVisited = () => {
   const [recentProducts, setRecentProducts] = useState(null);
+
+  const {
+    cart,
+    fetchCart,
+    addProduct,
+    removeProduct,
+    updateProductQuantity,
+    loading,
+    error,
+  } = useCartStore();
+
+  const {
+    wishlist,
+    fetchWishlist,
+    addProductToWishlist,
+    removeProductFromWishlist,
+    // loading,
+    // error,
+  } = useWishlistStore();
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  const handleAddToCart = async (productId, quantity = 1) => {
+    await addProduct(productId, quantity);
+    fetchCart();
+
+    // alert(12)
+  };
+
+  const handleRemoveFromCart = async (productId) => {
+    await removeProduct(productId);
+    fetchCart();
+  };
+
+  useEffect(() => {
+    fetchWishlist();
+  }, [fetchWishlist]);
+
+  const handleAddToWishlist = async (productId) => {
+    await addProductToWishlist(productId);
+    fetchWishlist();
+  };
+
+  const handleRemoveFromWishlist = async (productId) => {
+    await removeProductFromWishlist(productId);
+    fetchWishlist();
+  };
 
   const getRecentlyVisited = async () => {
     const { data } = await axios.get(
@@ -38,7 +89,13 @@ const RecentlyVisited = () => {
                 <ProductCard
                   key={product?._id}
                   detail={product}
-                  className={"w-[200px] md:w-[280px] h-[250px] md:h-[330px] "}
+                  className={"w-[200px] md:w-[280px]  "}
+                  cart={cart}
+                  wishlist={wishlist}
+                  handleAddToCart={handleAddToCart}
+                  handleRemoveFromCart={handleRemoveFromCart}
+                  handleAddToWishlist={handleAddToWishlist}
+                  handleRemoveFromWishlist={handleRemoveFromWishlist}
                 />
               ))}
             </div>
