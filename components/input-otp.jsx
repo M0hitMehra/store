@@ -38,8 +38,7 @@ export function InputOTPForm() {
   });
 
   async function onSubmit(data) {
-    console.log(data);
-    const otp = data?.pin;
+     const otp = data?.pin;
     try {
       const response = await axios.post(
         `${server}/auth/verify`,
@@ -58,8 +57,7 @@ export function InputOTPForm() {
         });
       }
     } catch (error) {
-      console.error(error);
-      toast({
+       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong",
       });

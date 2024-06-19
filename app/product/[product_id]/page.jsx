@@ -79,7 +79,6 @@ const ProductDetails = ({ params }) => {
         let wishlist = user?.wishlist;
         let doesExist = wishlist?.includes(product_id);
         setisPresentOnWishList(doesExist);
-        console.log(user);
         const historyResponse = await axios.post(
           `${server}/auth/user/history/${product_id}`,
           {},
@@ -120,7 +119,6 @@ const ProductDetails = ({ params }) => {
       }
       setButtonLoadingState(false);
     } catch (error) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Failed to add to wishlist",
@@ -156,7 +154,6 @@ const ProductDetails = ({ params }) => {
       }
       setButtonLoadingState(false);
     } catch (error) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Failed to remove from wishlist",
@@ -218,7 +215,7 @@ const ProductDetails = ({ params }) => {
               ))}
             </div>
           </div>
-          <div className="col-span-1 md:col-span-4 flex flex-col gap-8 md:gap-12 p-5">
+          <div className="col-span-1 md:col-span-4 flex flex-col gap-8 md:gap-12 p-5 pb-0">
             <div className="flex flex-col gap-2 title-price">
               <h1 className="font-bold text-xl md:text-2xl">
                 {productDetails?.title}
@@ -356,6 +353,42 @@ const ProductDetails = ({ params }) => {
                   </Button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Extra details */}
+        <div className=" p-8 w-full">
+          <div className=" flex flex-col justify-center items-center  rounded-md p-5  bg-gray-300 w-full gap-10">
+            {/* {productDetails?.otherDetails?.productStory?.title} */}
+            <div className=" w-full flex flex-col justify-center items-start gap-3">
+              <h1> {productDetails?.otherDetails?.productStory?.title}</h1>
+              <p> {productDetails?.otherDetails?.productStory?.description}</p>
+            </div>
+            <div className=" grid grid-cols-6 justify-center items-start w-full">
+              <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
+                <h1> {productDetails?.otherDetails?.productDetails?.title}</h1>
+                <ul>
+                  {productDetails?.otherDetails?.productDetails?.description &&
+                    productDetails?.otherDetails?.productDetails?.description?.map(
+                      (detail) => <li key={detail}>{detail}</li>
+                    )}
+                </ul>
+              </div>
+              <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
+                <h1>
+                  {" "}
+                  {productDetails?.otherDetails?.manufacturAddress?.title}
+                </h1>
+                <h1>
+                  {" "}
+                  {productDetails?.otherDetails?.manufacturAddress?.description}
+                </h1>
+              </div>
+            </div>
+            <div className=" w-full flex flex-col justify-center items-start gap-3">
+              <h1> {productDetails?.otherDetails?.countoryOrigin?.title}</h1>
+              <p>{productDetails?.otherDetails?.countoryOrigin?.description}</p>
             </div>
           </div>
         </div>

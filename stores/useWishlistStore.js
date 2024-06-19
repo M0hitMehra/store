@@ -16,8 +16,7 @@ const useWishlistStore = create((set) => ({
       });
       set({ wishlist: data.wishlist, loading: false });
     } catch (error) {
-      console.error("Failed to fetch wishlist:", error);
-      set({ loading: false, error: error.message });
+       set({ loading: false, error: error.message });
     }
   },
 
@@ -40,8 +39,7 @@ const useWishlistStore = create((set) => ({
         });
       }
     } catch (error) {
-      console.error("Failed to add product to wishlist:", error);
-      set({ loading: false, error: error.message });
+       set({ loading: false, error: error.message });
       toast({
         variant: "destructive",
         title: error?.response?.data?.message,
@@ -69,7 +67,7 @@ const useWishlistStore = create((set) => ({
         });
       }
     } catch (error) {
-      console.error("Failed to remove product from wishlist:", error);
+      error("Failed to remove product from wishlist:", error);
       set({ loading: false, error: error.message });
       toast({
         variant: "destructive",

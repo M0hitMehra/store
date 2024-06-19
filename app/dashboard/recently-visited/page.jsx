@@ -17,7 +17,7 @@ const RecentlyVisited = () => {
     addProduct,
     removeProduct,
     updateProductQuantity,
-    loading,
+    loading: carLoading,
     error,
   } = useCartStore();
 
@@ -26,7 +26,7 @@ const RecentlyVisited = () => {
     fetchWishlist,
     addProductToWishlist,
     removeProductFromWishlist,
-    // loading,
+    loading: wishListLoading,
     // error,
   } = useWishlistStore();
 
@@ -77,8 +77,7 @@ const RecentlyVisited = () => {
     getRecentlyVisited();
   }, []);
 
-  console.log(recentProducts);
-
+ 
   return (
     <>
       {recentProducts ? (
@@ -96,6 +95,8 @@ const RecentlyVisited = () => {
                   handleRemoveFromCart={handleRemoveFromCart}
                   handleAddToWishlist={handleAddToWishlist}
                   handleRemoveFromWishlist={handleRemoveFromWishlist}
+                  carLoading={carLoading}
+                  wishListLoading={wishListLoading}
                 />
               ))}
             </div>

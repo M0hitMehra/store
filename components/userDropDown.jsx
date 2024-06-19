@@ -67,15 +67,15 @@ const UserDropDown = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="text-base my-1 font-medium"
+          className="text-base my-1 font-medium cursor-pointer"
           onClick={() => router.push("/dashboard/wishlist")}
         >
           Wishlist
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-base my-1 font-medium">
+        <DropdownMenuItem className="text-base my-1 font-medium cursor-pointer">
           Check Order Status
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-base my-1 font-medium">
+        <DropdownMenuItem className="text-base my-1 font-medium cursor-pointer">
           Store Finder
         </DropdownMenuItem>
 

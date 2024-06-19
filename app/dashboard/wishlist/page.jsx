@@ -22,7 +22,7 @@ const Wishlist = () => {
     addProduct,
     removeProduct,
     updateProductQuantity,
-    loading,
+    loading: carLoading,
     error,
   } = useCartStore();
 
@@ -31,7 +31,7 @@ const Wishlist = () => {
     fetchWishlist,
     addProductToWishlist,
     removeProductFromWishlist,
-    // loading,
+    loading: wishListLoading,
     // error,
   } = useWishlistStore();
 
@@ -103,6 +103,8 @@ const Wishlist = () => {
                     handleRemoveFromCart={handleRemoveFromCart}
                     handleAddToWishlist={handleAddToWishlist}
                     handleRemoveFromWishlist={handleRemoveFromWishlist}
+                    carLoading={carLoading}
+                    wishListLoading={wishListLoading}
                   />
                 </div>
               ))}
