@@ -53,7 +53,7 @@ const Slider = ({ data }) => {
     fetchWishlist();
   };
   return (
-    <div className="flex justify-start items-center overflow-x-auto gap-20 p-8">
+    <div className="flex justify-start items-center overflow-x-auto gap-20 p-8 w-[99vw]">
       {data?.map((value) => (
         <ProductCard
           key={value._id}

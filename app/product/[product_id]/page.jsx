@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/authContext";
+import Slider from "@/components/slider";
 
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
@@ -31,7 +32,7 @@ const ProductDetails = ({ params }) => {
   const [error, setError] = useState(null);
   const [buttonLoadingState, setButtonLoadingState] = useState(false);
   const { user, loading: authLoading } = useAuth();
-
+  const [recentProducts, setRecentProducts] = useState(null);
   const [isPresentOnWishList, setisPresentOnWishList] = useState(false);
 
   const router = useRouter();
@@ -162,6 +163,23 @@ const ProductDetails = ({ params }) => {
     }
   };
 
+  const getRecentlyVisited = async () => {
+    const { data } = await axios.get(
+      `${server}/auth/user/recently-visited`,
+
+      {
+        withCredentials: true,
+      }
+    );
+    if (data?.success) {
+      setRecentProducts(data?.recentlyVisited);
+    }
+  };
+
+  useEffect(() => {
+    getRecentlyVisited();
+  }, []);
+
   if (loading) {
     return <Loader />;
   }
@@ -179,10 +197,10 @@ const ProductDetails = ({ params }) => {
 
   return (
     <>
-      <div className="flex flex-col justify-center items-center p-5 gap-10 xl:p-0 pt-20">
-        <div className="grid grid-cols-1 md:grid-cols-9 w-full">
+      <div className="flex flex-col justify-center items-center p-5 gap-10 xl:p-0 pt-20 ">
+        <div className="grid grid-cols-1 md:grid-cols-9 w-full border-b">
           <div
-            className="col-span-1 md:col-span-5 overflow-y-auto md:h-screen"
+            className="col-span-1 md:col-span-5 overflow-y-auto md:h-screen "
             style={{
               scrollbarWidth: "none" /* Firefox */,
               msOverflowStyle: "none" /* IE and Edge */,
@@ -201,6 +219,7 @@ const ProductDetails = ({ params }) => {
                           "0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1)",
                       }}
                       // onClick={() => setIsCarouselOpen((prev) => !prev)}
+                      className=" h-full w-full"
                     />
                   </DialogTrigger>
                   <DialogContent className="p-8 rounded-lg">
@@ -358,40 +377,90 @@ const ProductDetails = ({ params }) => {
         </div>
 
         {/* Extra details */}
-        <div className=" p-8 w-full">
-          <div className=" flex flex-col justify-center items-center  rounded-md p-5  bg-gray-300 w-full gap-10">
-            {/* {productDetails?.otherDetails?.productStory?.title} */}
-            <div className=" w-full flex flex-col justify-center items-start gap-3">
-              <h1> {productDetails?.otherDetails?.productStory?.title}</h1>
-              <p> {productDetails?.otherDetails?.productStory?.description}</p>
-            </div>
-            <div className=" grid grid-cols-6 justify-center items-start w-full">
-              <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
-                <h1> {productDetails?.otherDetails?.productDetails?.title}</h1>
-                <ul>
-                  {productDetails?.otherDetails?.productDetails?.description &&
-                    productDetails?.otherDetails?.productDetails?.description?.map(
-                      (detail) => <li key={detail}>{detail}</li>
-                    )}
-                </ul>
+        {productDetails?.otherDetails?.productStory?.description &&
+          productDetails?.otherDetails?.productDetails?.description &&
+          productDetails?.otherDetails?.manufacturAddress?.description &&
+          productDetails?.otherDetails?.countoryOrigin?.description && (
+            <div className=" p-8 w-full">
+              <div className=" flex flex-col justify-center items-center  rounded-md p-5  bg-gray-200 w-full gap-10">
+                {/* {productDetails?.otherDetails?.productStory?.title} */}
+                {productDetails?.otherDetails?.productStory && (
+                  <div className=" w-full flex flex-col justify-center items-start gap-3">
+                    <h1 className=" text-2xl font-bold ">
+                      {" "}
+                      {productDetails?.otherDetails?.productStory?.title}
+                    </h1>
+                    <p className=" text-base font-light text-neutral-800">
+                      {" "}
+                      {productDetails?.otherDetails?.productStory?.description}
+                    </p>
+                  </div>
+                )}
+                <div className=" grid grid-cols-6 justify-center items-start w-full">
+                  {productDetails?.otherDetails?.productDetails && (
+                    <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
+                      <h1 className=" text-2xl font-bold ">
+                        {" "}
+                        {productDetails?.otherDetails?.productDetails?.title}
+                      </h1>
+                      <ul className=" list-disc flex flex-col justify-center items-start pl-4 gap-2">
+                        {productDetails?.otherDetails?.productDetails
+                          ?.description &&
+                          productDetails?.otherDetails?.productDetails?.description?.map(
+                            (detail) => (
+                              <li
+                                key={detail}
+                                className="text-base font-light text-neutral-800"
+                              >
+                                {detail}
+                              </li>
+                            )
+                          )}
+                      </ul>
+                    </div>
+                  )}
+
+                  {productDetails?.otherDetails?.manufacturAddress && (
+                    <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
+                      <h1 className=" text-2xl font-bold ">
+                        {" "}
+                        {productDetails?.otherDetails?.manufacturAddress?.title}
+                      </h1>
+                      <p className="text-base font-light text-neutral-800">
+                        {" "}
+                        {
+                          productDetails?.otherDetails?.manufacturAddress
+                            ?.description
+                        }
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {productDetails?.otherDetails?.countoryOrigin && (
+                  <div className=" w-full flex flex-col justify-center items-start gap-3">
+                    <h1 className=" text-2xl font-bold ">
+                      {" "}
+                      {productDetails?.otherDetails?.countoryOrigin?.title}
+                    </h1>
+                    <p className="text-base font-light text-neutral-800">
+                      {
+                        productDetails?.otherDetails?.countoryOrigin
+                          ?.description
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
-              <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
-                <h1>
-                  {" "}
-                  {productDetails?.otherDetails?.manufacturAddress?.title}
-                </h1>
-                <h1>
-                  {" "}
-                  {productDetails?.otherDetails?.manufacturAddress?.description}
-                </h1>
-              </div>
             </div>
-            <div className=" w-full flex flex-col justify-center items-start gap-3">
-              <h1> {productDetails?.otherDetails?.countoryOrigin?.title}</h1>
-              <p>{productDetails?.otherDetails?.countoryOrigin?.description}</p>
-            </div>
-          </div>
+          )}
+
+        {/* You may also like */}
+        <div className=" flex flex-col gap-1">
+          <h1 className=" pl-9 text-2xl font-bold">Recently Visited</h1>
+          <Slider data={recentProducts} />
         </div>
+
+        {/* Recently Visited */}
       </div>
     </>
   );

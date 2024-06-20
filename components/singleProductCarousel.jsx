@@ -8,10 +8,10 @@ import {
 
 const SingleProductCarousel = ({ data }) => {
   return (
-    <Carousel>
-      <CarouselContent>
+    <Carousel  >
+      <CarouselContent >
         {data?.map((image, index) => (
-          <CarouselItem key={index}>
+          <CarouselItem key={index} >
             <img
               src={image?.url}
               alt=""
@@ -19,6 +19,7 @@ const SingleProductCarousel = ({ data }) => {
                 boxShadow:
                   "0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1)",
               }}
+              className=" h-[70vh] "
             />
           </CarouselItem>
         ))}

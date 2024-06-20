@@ -77,7 +77,6 @@ const RecentlyVisited = () => {
     getRecentlyVisited();
   }, []);
 
- 
   return (
     <>
       {recentProducts ? (
