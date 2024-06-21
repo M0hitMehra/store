@@ -19,8 +19,7 @@ const useCartStore = create((set) => ({
         set({ cart: data.cart, loading: false });
       }
     } catch (error) {
-      console.error("Failed to fetch cart:", error);
-      set({ loading: false, error: "Failed to fetch cart" });
+       set({ loading: false, error: "Failed to fetch cart" });
     }
   },
 
@@ -50,8 +49,7 @@ const useCartStore = create((set) => ({
         variant: "destructive",
         title: error?.response?.data?.message,
       });
-      console.error("Failed to add product to cart:", error);
-      set({ loading: false, error: "Failed to add product to cart" });
+       set({ loading: false, error: "Failed to add product to cart" });
       // Optionally, show an error toast here
       return Promise.reject(error); // Add this line
     }
@@ -79,8 +77,7 @@ const useCartStore = create((set) => ({
         return Promise.resolve(); // Add this line
       }
     } catch (error) {
-      console.error("Failed to remove product from cart:", error);
-      set({ loading: false, error: "Failed to remove product from cart" });
+       set({ loading: false, error: "Failed to remove product from cart" });
       // Optionally, show an error toast here
       return Promise.reject(error); // Add this line
     }
@@ -108,8 +105,7 @@ const useCartStore = create((set) => ({
         return Promise.resolve(); // Add this line
       }
     } catch (error) {
-      console.error("Failed to update product quantity:", error);
-      set({ loading: false, error: "Failed to update product quantity" });
+       set({ loading: false, error: "Failed to update product quantity" });
       // Optionally, show an error toast here
       return Promise.reject(error); // Add this line
     }

@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import {
   Heart,
   HeartOff,
+  Loader,
   LucideHeartCrack,
   LucideTrash2,
   ShoppingCartIcon,
@@ -28,6 +29,8 @@ const ProductCard = ({
   cart,
   handleAddToWishlist,
   handleRemoveFromWishlist,
+  carLoading,
+  wishListLoading,
 }) => {
   const router = useRouter();
 
@@ -85,8 +88,7 @@ const ProductCard = ({
       }
       setButtonLoadingState(false);
     } catch (error) {
-      console.error(error);
-      toast({
+       toast({
         variant: "destructive",
         title: "Failed to add to wishlist",
       });
@@ -123,8 +125,7 @@ const ProductCard = ({
       }
       setButtonLoadingState(false);
     } catch (error) {
-      console.error(error);
-      toast({
+       toast({
         variant: "destructive",
         title: "Failed to remove from wishlist",
       });
@@ -172,7 +173,18 @@ const ProductCard = ({
                     : handleAddToCart(detail?._id, 1)
                 }
               >
-                {isInCart ? <LucideTrash2 /> : <ShoppingCartIcon />}
+ 
+                {isInCart ? (
+                  carLoading ? (
+                    <Loader className="text-white animate-spin" />
+                  ) : (
+                    <LucideTrash2 />
+                  )
+                ) : wishListLoading ? (
+                  <Loader className="text-white animate-spin" />
+                ) : (
+                  <ShoppingCartIcon />
+                )}
               </Button>
             </CustomTooltip>
             <CustomTooltip
@@ -192,7 +204,13 @@ const ProductCard = ({
                 }
               >
                 {isInWishlist ? (
-                  <HeartOff className={clsx("text-white")} />
+                  wishListLoading ? (
+                    <Loader className="text-white animate-spin" />
+                  ) : (
+                    <HeartOff className={clsx("text-white")} />
+                  )
+                ) : wishListLoading ? (
+                  <Loader className="text-white animate-spin" />
                 ) : (
                   <Heart className={clsx("text-white")} />
                 )}

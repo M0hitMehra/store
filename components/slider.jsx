@@ -10,7 +10,7 @@ const Slider = ({ data }) => {
     addProduct,
     removeProduct,
     updateProductQuantity,
-    loading,
+    loading: carLoading,
     error,
   } = useCartStore();
 
@@ -19,7 +19,7 @@ const Slider = ({ data }) => {
     fetchWishlist,
     addProductToWishlist,
     removeProductFromWishlist,
-    // loading,
+    loading: wishListLoading,
     // error,
   } = useWishlistStore();
 
@@ -53,7 +53,7 @@ const Slider = ({ data }) => {
     fetchWishlist();
   };
   return (
-    <div className="flex justify-start items-center overflow-x-auto gap-20 p-8">
+    <div className="flex justify-start items-center overflow-x-auto gap-20 p-8 w-[99vw]">
       {data?.map((value) => (
         <ProductCard
           key={value._id}
@@ -64,6 +64,8 @@ const Slider = ({ data }) => {
           handleRemoveFromCart={handleRemoveFromCart}
           handleAddToWishlist={handleAddToWishlist}
           handleRemoveFromWishlist={handleRemoveFromWishlist}
+          carLoading={carLoading}
+          wishListLoading={wishListLoading}
         />
       ))}
     </div>

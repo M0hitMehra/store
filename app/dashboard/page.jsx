@@ -72,8 +72,7 @@ const UserProfile = () => {
   };
 
   const handleUpdateProfile = async (formData) => {
-    console.log(formData);
-    // Implement the logic to update the user profile
+     // Implement the logic to update the user profile
     try {
       const { data } = await axios.post(
         `${server}/auth/user/update`,
@@ -92,8 +91,7 @@ const UserProfile = () => {
       setEditMode(false);
       setOpen(false); // Close the dialog after submitting
     } catch (error) {
-      console.error(error);
-      toast({
+       toast({
         variant: "destructive",
         title: "Error while updating user profile",
       });
@@ -126,8 +124,7 @@ const UserProfile = () => {
         };
         reader.readAsDataURL(compressedFile);
       } catch (error) {
-        console.error("Error compressing image:", error);
-        toast({
+         toast({
           variant: "destructive",
           title: "Error compressing image",
         });
@@ -168,8 +165,7 @@ const UserProfile = () => {
       setEditMode(false);
       setOpen(false); // Close the dialog after submitting
     } catch (error) {
-      console.error("Error while updating user profile:", error);
-      toast({
+       toast({
         variant: "destructive",
         title: "Error while updating user profile",
       });
@@ -192,8 +188,7 @@ const UserProfile = () => {
         });
       }
     } catch (error) {
-      console.error(error);
-      toast({
+       toast({
         title: "Failed to delete user",
         variant: "destructive",
       });

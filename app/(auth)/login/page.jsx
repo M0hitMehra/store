@@ -71,8 +71,7 @@ const Login = () => {
         router.replace("/dashboard");
       }
     } catch (error) {
-      console.error("error", error);
-      setEmail("");
+       setEmail("");
       setPassword("");
       setIsLoading(false);
       toast({
