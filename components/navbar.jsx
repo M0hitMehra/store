@@ -655,7 +655,7 @@ const Navbar = () => {
   return (
     <section className="  sticky top-0 z-50 ">
       {/* Desktop */}
-      <nav className="hidden xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900">
+      <nav className="hidden  xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900">
         <div className=" col-span-8 flex gap-10 justify-start items-center">
           {/* Logo */}
           <Image
@@ -703,11 +703,18 @@ const Navbar = () => {
           {/* search */}
           <Button
             variant={"ghost"}
-            className=" flex gap-3 justify-between rounded-lg border-[1px] border-gray-500 hover:border-gray-400 shadow-xs shadow-white px-6 hover:bg-neutral-900"
+            className=" text-white  xl:hidden  flex gap-3 justify-between rounded-lg border-[1px] border-gray-500 hover:border-gray-400 shadow-xs shadow-white px-6 hover:bg-neutral-900"
           >
             <Search color="white" width={18} height={18} />
-            <p className=" text-white">Search</p>
+            <p className="">Search</p>
           </Button>
+
+          <Search
+            color="white"
+            width={40}
+            height={40}
+            className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer  text-white  hidden xl:block"
+          />
 
           <Heart
             color="white"
@@ -733,7 +740,7 @@ const Navbar = () => {
           hoveredLink.toLowerCase() === item.category.toLowerCase() && (
             <div
               key={item?.category}
-              className=" overflow-scroll scroll-smooth flex justify-start items-start gap-28 py-10 px-5 absolute text-white  w-full z-20 bg-[#ffffff]"
+              className=" overflow-scroll scroll-smooth flex justify-start items-start gap-28 py-10 px-5 absolute text-white max-h-[90vh]  w-full z-20 bg-[#ffffff]"
               onMouseEnter={() => {
                 setHoveredLink(item?.category);
               }}

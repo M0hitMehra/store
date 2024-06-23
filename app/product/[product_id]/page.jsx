@@ -80,14 +80,16 @@ const ProductDetails = ({ params }) => {
         let wishlist = user?.wishlist;
         let doesExist = wishlist?.includes(product_id);
         setisPresentOnWishList(doesExist);
-        const historyResponse = await axios.post(
-          `${server}/auth/user/history/${product_id}`,
-          {},
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
-        );
+        try {
+          const historyResponse = await axios.post(
+            `${server}/auth/user/history/${product_id}`,
+            {},
+            {
+              headers: { "Content-Type": "application/json" },
+              withCredentials: true,
+            }
+          );
+        } catch (error) {}
       }
     })();
   }, [user, product_id]);
@@ -164,13 +166,13 @@ const ProductDetails = ({ params }) => {
   };
 
   const getRecentlyVisited = async () => {
-    const { data } = await axios.get(
-      `${server}/auth/user/recently-visited`,
-
-      {
-        withCredentials: true,
-      }
-    );
+    if (!user) {
+      return;
+    }
+    const { data } = await axios.get(`${server}/auth/user/recently-visited`, {
+      params: { limit: 10 },
+      withCredentials: true,
+    });
     if (data?.success) {
       setRecentProducts(data?.recentlyVisited);
     }
@@ -178,7 +180,7 @@ const ProductDetails = ({ params }) => {
 
   useEffect(() => {
     getRecentlyVisited();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return <Loader />;

@@ -56,7 +56,7 @@ const Slider = ({ data }) => {
     <div className="flex justify-start items-center overflow-x-auto gap-20 p-8 w-[99vw]">
       {data?.map((value) => (
         <ProductCard
-          key={value._id}
+          key={value?._id}
           detail={value}
           cart={cart}
           wishlist={wishlist}
