@@ -101,7 +101,7 @@ const RecentlyVisited = () => {
             </div>
           ) : (
             <p className=" h-full w-full flex justify-center items-center text-white font-medium text-xl">
-              Uh Oh! you haven&apos;t wishlisted any product yet
+              Uh Oh! you haven&apos;t visited any product yet
             </p>
           )}
         </>
