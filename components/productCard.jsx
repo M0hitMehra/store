@@ -88,7 +88,7 @@ const ProductCard = ({
       }
       setButtonLoadingState(false);
     } catch (error) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Failed to add to wishlist",
       });
@@ -125,7 +125,7 @@ const ProductCard = ({
       }
       setButtonLoadingState(false);
     } catch (error) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Failed to remove from wishlist",
       });
@@ -136,7 +136,7 @@ const ProductCard = ({
   return (
     <Card
       className={clsx(
-        " flex-shrink-0 cursor-pointer w-[250px] md:w-[360px] h-[300px] md:h-[400px]",
+        " flex-shrink-0 cursor-pointer w-[250px] h-[400px] md:w-[360px]  md:h-[400px]",
         className
       )}
     >
@@ -173,7 +173,6 @@ const ProductCard = ({
                     : handleAddToCart(detail?._id, 1)
                 }
               >
- 
                 {isInCart ? (
                   carLoading ? (
                     <Loader className="text-white animate-spin" />

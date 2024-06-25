@@ -27,6 +27,8 @@ import { Edit, ShieldBan } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
 import imageCompression from "browser-image-compression";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const ProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -34,6 +36,12 @@ const ProfileSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email("Invalid email address"),
   address: z.string().optional(),
+});
+
+const UpdatePasswordSchema = z.object({
+  oldPassword: z.string().min(8, "Old password is required"),
+  newPassword: z.string().min(8, "New password is required"),
+  confirmPassword: z.string().min(8, "Confirm password is required"),
 });
 
 const UserProfile = () => {
@@ -62,6 +70,21 @@ const UserProfile = () => {
     },
   });
 
+  const {
+    register: registerResetPassword,
+    handleSubmit: handleSubmitResetPassword,
+    formState: { errors: errorsResetPassword, isDirty: isDirtyResetPassword },
+    reset: resetPassword,
+    watch: watchResetPassword,
+  } = useForm({
+    resolver: zodResolver(UpdatePasswordSchema),
+    defaultValues: {
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
   const handleEditClick = () => {
     setEditMode(true);
   };
@@ -72,7 +95,7 @@ const UserProfile = () => {
   };
 
   const handleUpdateProfile = async (formData) => {
-     // Implement the logic to update the user profile
+    // Implement the logic to update the user profile
     try {
       const { data } = await axios.post(
         `${server}/auth/user/update`,
@@ -91,11 +114,37 @@ const UserProfile = () => {
       setEditMode(false);
       setOpen(false); // Close the dialog after submitting
     } catch (error) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Error while updating user profile",
       });
       setOpen(false); // Close the dialog after submitting
+    }
+  };
+
+  const updatePasswordHandler = async (formData) => {
+    try {
+      const { data } = await axios.put(
+        `${server}/auth/user/password/update`,
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      if (data?.success) {
+        setUser(data?.user);
+        toast({
+          variant: "success",
+          title: "Password updated successfully",
+        });
+      }
+      resetPassword();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: error?.response?.data?.message,
+      });
+      resetPassword();
     }
   };
 
@@ -124,7 +173,7 @@ const UserProfile = () => {
         };
         reader.readAsDataURL(compressedFile);
       } catch (error) {
-         toast({
+        toast({
           variant: "destructive",
           title: "Error compressing image",
         });
@@ -165,7 +214,7 @@ const UserProfile = () => {
       setEditMode(false);
       setOpen(false); // Close the dialog after submitting
     } catch (error) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Error while updating user profile",
       });
@@ -188,7 +237,7 @@ const UserProfile = () => {
         });
       }
     } catch (error) {
-       toast({
+      toast({
         title: "Failed to delete user",
         variant: "destructive",
       });
@@ -295,9 +344,78 @@ const UserProfile = () => {
               >
                 Edit profile
               </Button>
-              <Button className="w-full shadow-md z-20 bg-blue-500">
-                Reset password
-              </Button>
+
+              <Dialog>
+                <DialogTrigger className="z-20 w-full">
+                  <Button className="w-full shadow-md z-20 bg-blue-500">
+                    Reset password
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Update Password</DialogTitle>
+                    <DialogDescription>
+                      <form
+                        className=" flex justify-center items-center flex-col p-5 gap-8"
+                        onSubmit={handleSubmitResetPassword(
+                          updatePasswordHandler
+                        )}
+                      >
+                        <div className="grid w-full max-w-sm items-center gap-2">
+                          <Label htmlFor="password">Old Password</Label>
+                          <Input
+                            type="password"
+                            placeholder="Old Password"
+                            {...registerResetPassword("oldPassword")}
+                          />
+                          {errorsResetPassword.oldPassword && (
+                            <p className="text-red-500 text-sm mt-2">
+                              {errorsResetPassword.oldPassword.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="grid w-full max-w-sm items-center gap-2">
+                          <Label htmlFor="password">New Password</Label>
+                          <Input
+                            type="password"
+                            placeholder="New Password"
+                            {...registerResetPassword("newPassword")}
+                          />
+                          {errorsResetPassword.newPassword && (
+                            <p className="text-red-500 text-sm mt-2">
+                              {errorsResetPassword.newPassword.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="grid w-full max-w-sm items-center gap-2">
+                          <Label htmlFor="password">Confirm Password</Label>
+                          <Input
+                            type="password"
+                            placeholder="Confirm Password"
+                            {...registerResetPassword("confirmPassword")}
+                          />
+                          {errorsResetPassword.confirmPassword && (
+                            <p className="text-red-500 text-sm mt-2">
+                              {errorsResetPassword.confirmPassword.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <Button
+                          type="submit"
+                          className=""
+                          disabled={!isDirtyResetPassword}
+                        >
+                          Update Password
+                        </Button>
+                      </form>
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+
               <Button className="w-full shadow-md z-20 bg-blue-500">
                 Forget password
               </Button>

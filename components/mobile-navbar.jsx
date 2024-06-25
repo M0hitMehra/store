@@ -113,7 +113,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
       >
         {isModalOpen && (
           <>
-            <div className=" overflow-x-hidden top-0 left-0  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center pt-24">
+            <div className=" overflow-x-hidden top-0 left-0 absolute  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center pt-24">
               {/* Categories */}
               <div className=" flex flex-col justify-between items-center h-full">
                 <div className=" flex flex-col justify-around gap-5">
@@ -137,7 +137,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
                   ))}
                 </div>
                 <div className=" w-full flex gap-3 justify-center items-center p-10">
-                  {user ? (
+                  {!user ? (
                     <>
                       <Button
                         className="px-10"
@@ -199,7 +199,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
                     }}
                   >
                     <div
-                      className=" absolute left-0 pl-2 flex gap-2 cursor-pointer justify-center items-center   z-[1000] "
+                      className=" fixed left-0 pl-2 flex gap-2 cursor-pointer justify-center items-center   z-[1000] "
                       onClick={() => setHoveredLink("")}
                     >
                       <ArrowBigLeftDash />
