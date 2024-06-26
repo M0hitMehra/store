@@ -71,11 +71,11 @@ const UserProfile = () => {
   });
 
   const {
-    register: registerResetPassword,
-    handleSubmit: handleSubmitResetPassword,
-    formState: { errors: errorsResetPassword, isDirty: isDirtyResetPassword },
-    reset: resetPassword,
-    watch: watchResetPassword,
+    register: registerupdatePassword,
+    handleSubmit: handleSubmitupdatePassword,
+    formState: { errors: errorsupdatePassword, isDirty: isDirtyupdatePassword },
+    reset: updatePassword,
+    watch: watchupdatePassword,
   } = useForm({
     resolver: zodResolver(UpdatePasswordSchema),
     defaultValues: {
@@ -138,13 +138,13 @@ const UserProfile = () => {
           title: "Password updated successfully",
         });
       }
-      resetPassword();
+      updatePassword();
     } catch (error) {
       toast({
         variant: "destructive",
         title: error?.response?.data?.message,
       });
-      resetPassword();
+      updatePassword();
     }
   };
 
@@ -348,7 +348,7 @@ const UserProfile = () => {
               <Dialog>
                 <DialogTrigger className="z-20 w-full">
                   <Button className="w-full shadow-md z-20 bg-blue-500">
-                    Reset password
+                    Update password
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -357,7 +357,7 @@ const UserProfile = () => {
                     <DialogDescription>
                       <form
                         className=" flex justify-center items-center flex-col p-5 gap-8"
-                        onSubmit={handleSubmitResetPassword(
+                        onSubmit={handleSubmitupdatePassword(
                           updatePasswordHandler
                         )}
                       >
@@ -366,11 +366,11 @@ const UserProfile = () => {
                           <Input
                             type="password"
                             placeholder="Old Password"
-                            {...registerResetPassword("oldPassword")}
+                            {...registerupdatePassword("oldPassword")}
                           />
-                          {errorsResetPassword.oldPassword && (
+                          {errorsupdatePassword.oldPassword && (
                             <p className="text-red-500 text-sm mt-2">
-                              {errorsResetPassword.oldPassword.message}
+                              {errorsupdatePassword.oldPassword.message}
                             </p>
                           )}
                         </div>
@@ -380,11 +380,11 @@ const UserProfile = () => {
                           <Input
                             type="password"
                             placeholder="New Password"
-                            {...registerResetPassword("newPassword")}
+                            {...registerupdatePassword("newPassword")}
                           />
-                          {errorsResetPassword.newPassword && (
+                          {errorsupdatePassword.newPassword && (
                             <p className="text-red-500 text-sm mt-2">
-                              {errorsResetPassword.newPassword.message}
+                              {errorsupdatePassword.newPassword.message}
                             </p>
                           )}
                         </div>
@@ -394,11 +394,11 @@ const UserProfile = () => {
                           <Input
                             type="password"
                             placeholder="Confirm Password"
-                            {...registerResetPassword("confirmPassword")}
+                            {...registerupdatePassword("confirmPassword")}
                           />
-                          {errorsResetPassword.confirmPassword && (
+                          {errorsupdatePassword.confirmPassword && (
                             <p className="text-red-500 text-sm mt-2">
-                              {errorsResetPassword.confirmPassword.message}
+                              {errorsupdatePassword.confirmPassword.message}
                             </p>
                           )}
                         </div>
@@ -406,7 +406,7 @@ const UserProfile = () => {
                         <Button
                           type="submit"
                           className=""
-                          disabled={!isDirtyResetPassword}
+                          disabled={!isDirtyupdatePassword}
                         >
                           Update Password
                         </Button>
