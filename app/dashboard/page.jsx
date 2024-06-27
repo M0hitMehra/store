@@ -20,8 +20,7 @@ import { InputOTPForm } from "@/components/input-otp";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import CustomTooltip from "@/components/custom-tooltip";
-import axios from "axios";
+ import axios from "axios";
 import { toast } from "@/components/ui/use-toast";
 import { Edit, ShieldBan } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
@@ -244,6 +243,29 @@ const UserProfile = () => {
     }
   };
 
+  const forgetPasswordHandler = async (email) => {
+    try {
+      const { data } = await axios.post(
+        `${server}/auth/user/password/forgot`,
+        { email },
+        {
+          withCredentials: true,
+        }
+      );
+      if (data?.success) {
+        toast({
+          title: "Reset Link has been sent to your email",
+          variant: "success",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to send password reset link",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -416,7 +438,12 @@ const UserProfile = () => {
                 </DialogContent>
               </Dialog>
 
-              <Button className="w-full shadow-md z-20 bg-blue-500">
+              <Button
+                className="w-full shadow-md z-20 bg-blue-500"
+                onClick={() => {
+                  forgetPasswordHandler(user?.email);
+                }}
+              >
                 Forget password
               </Button>
               <Button

@@ -6,7 +6,7 @@ import {
   Menu,
   Search,
   ShoppingCart,
-   X,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -16,8 +16,10 @@ import clsx from "clsx";
 import axios from "axios";
 import { toast } from "./ui/use-toast";
 import useAuthStore from "@/stores/useAuthStore";
+import { server } from "@/lib/utils";
 
 const MobileNavbar = ({ links, navLinksDropDown }) => {
+  const setUser = useAuthStore((state) => state.setUser);
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
   const [hoveredLink, setHoveredLink] = useState("");
@@ -40,7 +42,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error logging out",
+        title: "Error logging out" + error,
       });
     }
   };

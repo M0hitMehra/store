@@ -71,7 +71,7 @@ const Login = () => {
         router.replace("/dashboard");
       }
     } catch (error) {
-       setEmail("");
+      setEmail("");
       setPassword("");
       setIsLoading(false);
       toast({
@@ -172,11 +172,16 @@ const Login = () => {
             Sign up here
           </span>
         </span>
+
+        <span
+          className="text-sm font-medium text-blue-500 cursor-pointer mt-5"
+          onClick={() => router.push("/forget/password")}
+        >
+          Forget password?
+        </span>
       </div>
     </div>
   );
 };
 
 export default Login;
-
-

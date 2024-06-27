@@ -13,12 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+ import { zodResolver } from "@hookform/resolvers/zod";
 import { server } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 import useAuthStore from "@/stores/useAuthStore";
+import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useForm } from "react-hook-form";
 
 const resetPasswordSchema = z.object({
   newPassword: z.string().min(8, "New password is required"),
@@ -27,21 +28,22 @@ const resetPasswordSchema = z.object({
 
 const ResetPassword = ({ params }) => {
   const { token } = params;
+  const router = useRouter();
 
   const setUser = useAuthStore((state) => state.setUser);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isDirty },
-    reset,
-  } = useForm({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isDirty },
+        reset,
+    } = useForm({
+        resolver: zodResolver(resetPasswordSchema),
+        defaultValues: {
+        newPassword: "",
+        confirmPassword: "",
+        },
+    });
 
   const resetPasswordHandler = async (formData) => {
     try {
@@ -58,10 +60,10 @@ const ResetPassword = ({ params }) => {
           variant: "success",
           title: "Password updated successfully",
         });
+        router.push("/dashboard");
       }
       reset();
     } catch (error) {
-        
       toast({
         variant: "destructive",
         title: error?.response?.data?.message,
