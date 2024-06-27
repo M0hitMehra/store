@@ -20,13 +20,14 @@ import { InputOTPForm } from "@/components/input-otp";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import CustomTooltip from "@/components/custom-tooltip";
-import axios from "axios";
+ import axios from "axios";
 import { toast } from "@/components/ui/use-toast";
 import { Edit, ShieldBan } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
 import imageCompression from "browser-image-compression";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const ProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -34,6 +35,12 @@ const ProfileSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email("Invalid email address"),
   address: z.string().optional(),
+});
+
+const UpdatePasswordSchema = z.object({
+  oldPassword: z.string().min(8, "Old password is required"),
+  newPassword: z.string().min(8, "New password is required"),
+  confirmPassword: z.string().min(8, "Confirm password is required"),
 });
 
 const UserProfile = () => {
@@ -62,6 +69,21 @@ const UserProfile = () => {
     },
   });
 
+  const {
+    register: registerupdatePassword,
+    handleSubmit: handleSubmitupdatePassword,
+    formState: { errors: errorsupdatePassword, isDirty: isDirtyupdatePassword },
+    reset: updatePassword,
+    watch: watchupdatePassword,
+  } = useForm({
+    resolver: zodResolver(UpdatePasswordSchema),
+    defaultValues: {
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
   const handleEditClick = () => {
     setEditMode(true);
   };
@@ -72,7 +94,7 @@ const UserProfile = () => {
   };
 
   const handleUpdateProfile = async (formData) => {
-     // Implement the logic to update the user profile
+    // Implement the logic to update the user profile
     try {
       const { data } = await axios.post(
         `${server}/auth/user/update`,
@@ -91,11 +113,37 @@ const UserProfile = () => {
       setEditMode(false);
       setOpen(false); // Close the dialog after submitting
     } catch (error) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Error while updating user profile",
       });
       setOpen(false); // Close the dialog after submitting
+    }
+  };
+
+  const updatePasswordHandler = async (formData) => {
+    try {
+      const { data } = await axios.put(
+        `${server}/auth/user/password/update`,
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
+      if (data?.success) {
+        setUser(data?.user);
+        toast({
+          variant: "success",
+          title: "Password updated successfully",
+        });
+      }
+      updatePassword();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: error?.response?.data?.message,
+      });
+      updatePassword();
     }
   };
 
@@ -124,7 +172,7 @@ const UserProfile = () => {
         };
         reader.readAsDataURL(compressedFile);
       } catch (error) {
-         toast({
+        toast({
           variant: "destructive",
           title: "Error compressing image",
         });
@@ -165,7 +213,7 @@ const UserProfile = () => {
       setEditMode(false);
       setOpen(false); // Close the dialog after submitting
     } catch (error) {
-       toast({
+      toast({
         variant: "destructive",
         title: "Error while updating user profile",
       });
@@ -188,8 +236,31 @@ const UserProfile = () => {
         });
       }
     } catch (error) {
-       toast({
+      toast({
         title: "Failed to delete user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const forgetPasswordHandler = async (email) => {
+    try {
+      const { data } = await axios.post(
+        `${server}/auth/user/password/forgot`,
+        { email },
+        {
+          withCredentials: true,
+        }
+      );
+      if (data?.success) {
+        toast({
+          title: "Reset Link has been sent to your email",
+          variant: "success",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to send password reset link",
         variant: "destructive",
       });
     }
@@ -295,10 +366,84 @@ const UserProfile = () => {
               >
                 Edit profile
               </Button>
-              <Button className="w-full shadow-md z-20 bg-blue-500">
-                Reset password
-              </Button>
-              <Button className="w-full shadow-md z-20 bg-blue-500">
+
+              <Dialog>
+                <DialogTrigger className="z-20 w-full">
+                  <Button className="w-full shadow-md z-20 bg-blue-500">
+                    Update password
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Update Password</DialogTitle>
+                    <DialogDescription>
+                      <form
+                        className=" flex justify-center items-center flex-col p-5 gap-8"
+                        onSubmit={handleSubmitupdatePassword(
+                          updatePasswordHandler
+                        )}
+                      >
+                        <div className="grid w-full max-w-sm items-center gap-2">
+                          <Label htmlFor="password">Old Password</Label>
+                          <Input
+                            type="password"
+                            placeholder="Old Password"
+                            {...registerupdatePassword("oldPassword")}
+                          />
+                          {errorsupdatePassword.oldPassword && (
+                            <p className="text-red-500 text-sm mt-2">
+                              {errorsupdatePassword.oldPassword.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="grid w-full max-w-sm items-center gap-2">
+                          <Label htmlFor="password">New Password</Label>
+                          <Input
+                            type="password"
+                            placeholder="New Password"
+                            {...registerupdatePassword("newPassword")}
+                          />
+                          {errorsupdatePassword.newPassword && (
+                            <p className="text-red-500 text-sm mt-2">
+                              {errorsupdatePassword.newPassword.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="grid w-full max-w-sm items-center gap-2">
+                          <Label htmlFor="password">Confirm Password</Label>
+                          <Input
+                            type="password"
+                            placeholder="Confirm Password"
+                            {...registerupdatePassword("confirmPassword")}
+                          />
+                          {errorsupdatePassword.confirmPassword && (
+                            <p className="text-red-500 text-sm mt-2">
+                              {errorsupdatePassword.confirmPassword.message}
+                            </p>
+                          )}
+                        </div>
+
+                        <Button
+                          type="submit"
+                          className=""
+                          disabled={!isDirtyupdatePassword}
+                        >
+                          Update Password
+                        </Button>
+                      </form>
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+
+              <Button
+                className="w-full shadow-md z-20 bg-blue-500"
+                onClick={() => {
+                  forgetPasswordHandler(user?.email);
+                }}
+              >
                 Forget password
               </Button>
               <Button

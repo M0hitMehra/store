@@ -83,7 +83,7 @@ const Signup = () => {
         router.replace("/dashboard");
       }
     } catch (error) {
-       setIsLoading(false);
+      setIsLoading(false);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
