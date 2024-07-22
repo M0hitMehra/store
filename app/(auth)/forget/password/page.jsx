@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 const forgetPasswordSchema = z.object({
   email: z
@@ -25,6 +26,7 @@ const forgetPasswordSchema = z.object({
 });
 
 const ForgetPassword = () => {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -39,20 +41,25 @@ const ForgetPassword = () => {
 
   const forgetPasswordHandler = async (formData) => {
     try {
-      const { data } = await axios.post(`${server}/auth/user/password/forgot`, formData, {
-        withCredentials: true,
-      });
+      const { data } = await axios.post(
+        `${server}/auth/user/password/forgot`,
+        formData,
+        {
+          withCredentials: true,
+        }
+      );
       if (data?.success) {
         toast({
           variant: "success",
           title:
             "Reset password link has been successfully sent to your email address",
         });
+        router.push("/");
       }
       reset();
     } catch (error) {
       toast({
-        variant: "danger",
+        variant: "destructive",
         title: error?.response?.data?.message || "An error occurred",
       });
       reset();

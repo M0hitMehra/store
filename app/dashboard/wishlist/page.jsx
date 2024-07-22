@@ -1,6 +1,5 @@
 "use client";
 
-import CustomTooltip from "@/components/custom-tooltip";
 import Loader from "@/components/loader";
 import ProductCard from "@/components/productCard";
 import { toast } from "@/components/ui/use-toast";

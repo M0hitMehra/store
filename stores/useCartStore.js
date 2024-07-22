@@ -19,7 +19,12 @@ const useCartStore = create((set) => ({
         set({ cart: data.cart, loading: false });
       }
     } catch (error) {
-       set({ loading: false, error: "Failed to fetch cart" });
+      set({ loading: false, error: "Failed to fetch cart" });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch cart",
+      });
     }
   },
 
@@ -41,17 +46,16 @@ const useCartStore = create((set) => ({
           cart: data.cart,
           loading: false,
         }));
-        // Optionally, show a success toast here
-        return Promise.resolve(); // Add this line
+        return Promise.resolve();
       }
     } catch (error) {
       toast({
         variant: "destructive",
-        title: error?.response?.data?.message,
+        title: error?.response?.data?.message || "Error",
+        description: "Failed to add product to cart",
       });
-       set({ loading: false, error: "Failed to add product to cart" });
-      // Optionally, show an error toast here
-      return Promise.reject(error); // Add this line
+      set({ loading: false, error: "Failed to add product to cart" });
+      return Promise.reject(error);
     }
   },
 
@@ -73,13 +77,16 @@ const useCartStore = create((set) => ({
           cart: data.cart,
           loading: false,
         }));
-        // Optionally, show a success toast here
-        return Promise.resolve(); // Add this line
+        return Promise.resolve();
       }
     } catch (error) {
-       set({ loading: false, error: "Failed to remove product from cart" });
-      // Optionally, show an error toast here
-      return Promise.reject(error); // Add this line
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to remove product from cart",
+      });
+      set({ loading: false, error: "Failed to remove product from cart" });
+      return Promise.reject(error);
     }
   },
 
@@ -101,13 +108,16 @@ const useCartStore = create((set) => ({
           cart: data.cart,
           loading: false,
         }));
-        // Optionally, show a success toast here
-        return Promise.resolve(); // Add this line
+        return Promise.resolve();
       }
     } catch (error) {
-       set({ loading: false, error: "Failed to update product quantity" });
-      // Optionally, show an error toast here
-      return Promise.reject(error); // Add this line
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update product quantity",
+      });
+      set({ loading: false, error: "Failed to update product quantity" });
+      return Promise.reject(error);
     }
   },
 

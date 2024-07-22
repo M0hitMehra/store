@@ -6,19 +6,26 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import clsx from "clsx";
+import { TooltipArrow } from "@radix-ui/react-tooltip";
 
 const CustomTooltip = ({
   children,
-  description,
+  content,
   className,
+  sideOffset = 5,
   side = "right",
 }) => {
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger className={clsx(className)}>{children}</TooltipTrigger>
-        <TooltipContent side={side}>
-          <p>{description}</p>
+    <TooltipProvider>
+      <Tooltip side="right">
+        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipContent
+          className={className}
+          sideOffset={sideOffset}
+          side={side}
+        >
+          {content}
+          <TooltipArrow className=" fill-gray-500 " />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
