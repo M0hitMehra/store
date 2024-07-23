@@ -111,7 +111,7 @@ const ProductCard = ({ detail, className }) => {
           </div>
           <div className=" w-full flex justify-center items-center gap-5">
             <CustomTooltip
-               side="left"
+              side="left"
               content={isInCart ? "Remove From Cart" : "Add To Cart"}
             >
               <Button
@@ -134,7 +134,7 @@ const ProductCard = ({ detail, className }) => {
             </CustomTooltip>
 
             <CustomTooltip
-               side="right"
+              side="right"
               content={
                 isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"
               }

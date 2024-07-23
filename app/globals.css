@@ -355,3 +355,22 @@ body {
   padding: 7.5px 50px;
   cursor: pointer;
 }
+
+
+ /* Add this CSS to your global styles or component-specific styles */
+.imageContainer {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.imageContainer img {
+  transform-origin: var(--zoom-pos-x, 0%) var(--zoom-pos-y, 0%);
+  transition: transform 0.15s linear;
+}
+
+.imageContainer--zoomed img {
+  cursor: zoom-in;
+  transform: scale(var(--zoom, 2));
+}

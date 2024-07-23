@@ -23,6 +23,7 @@ import { useAuth } from "@/context/authContext";
 import Slider from "@/components/slider";
 import Image from "next/image";
 
+
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
   const [loading, setLoading] = useState(true);
@@ -227,7 +228,7 @@ const ProductDetails = ({ params }) => {
                       // onClick={() => setIsCarouselOpen((prev) => !prev)}
                     />{" "}
                   </DialogTrigger>
-                  <DialogContent className="p-8 rounded-lg max-w-[60vw] max-h-[100vh]">
+                  <DialogContent className="p-8 rounded-lg max-w-[90vw] max-h-[100vh]">
                     <DialogHeader>
                       <DialogTitle>{productDetails?.title}</DialogTitle>
                       <DialogDescription>
