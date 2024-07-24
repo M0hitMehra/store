@@ -21,6 +21,9 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/authContext";
 import Slider from "@/components/slider";
+import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
+
 
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
@@ -109,7 +112,7 @@ const ProductDetails = ({ params }) => {
         `${server}/auth/wishlist/${productId}`,
         {},
         {
-          withCredentials: true, // Include credentials for cookies
+          withCredentials: true,
         }
       );
 
@@ -208,23 +211,25 @@ const ProductDetails = ({ params }) => {
               msOverflowStyle: "none" /* IE and Edge */,
             }}
           >
-            <div className="p-1 flex justify-start items-center gap-5 flex-wrap">
+            <div className="p-1 flex justify-start items-center gap-5 flex-wrap ">
               {productDetails?.images?.map((image, index) => (
-                <Dialog key={index}>
+                <Dialog key={index} className="max-w-[60vw] max-h-[100vh]">
                   <DialogTrigger className="max-w-[45%] h-full object-cover rounded-sm cursor-pointer">
                     {" "}
-                    <img
+                    <Image
                       src={image?.url}
                       alt=""
                       style={{
                         boxShadow:
                           "0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1)",
                       }}
+                      className="h-full w-full"
+                      width={800} // specify the width of the image
+                      height={600} // specify the height of the image
                       // onClick={() => setIsCarouselOpen((prev) => !prev)}
-                      className=" h-full w-full"
-                    />
+                    />{" "}
                   </DialogTrigger>
-                  <DialogContent className="p-8 rounded-lg">
+                  <DialogContent className="p-8 rounded-lg max-w-[90vw] max-h-[100vh]">
                     <DialogHeader>
                       <DialogTitle>{productDetails?.title}</DialogTitle>
                       <DialogDescription>
@@ -236,6 +241,7 @@ const ProductDetails = ({ params }) => {
               ))}
             </div>
           </div>
+
           <div className="col-span-1 md:col-span-4 flex flex-col gap-8 md:gap-12 p-5 pb-0">
             <div className="flex flex-col gap-2 title-price">
               <h1 className="font-bold text-xl md:text-2xl">
@@ -266,16 +272,22 @@ const ProductDetails = ({ params }) => {
                         router.replace(`/product/${duplicateProduct?._id}`);
                       }}
                     >
-                      <img
-                        src={duplicateProduct?.images?.[0]?.url}
+                      <Image
+                        src={
+                          duplicateProduct?.images?.[0]?.url ||
+                          "https://res.cloudinary.com/mohit786/image/upload/v1693677254/cv9gdgz150vtoimcga0e.jpg"
+                        }
                         alt=""
+                        width={200}
+                        height={80}
                         className={clsx(
-                          "h-20 w-20 hover:opacity-80 color-select-images",
+                          " max-w-24 h-20 hover:opacity-80 color-select-images",
                           {
                             "border-2 border-black rounded-md hover:opacity-100 cursor-default":
                               duplicateProduct?._id === productDetails?._id,
                           }
                         )}
+                        quality={75} // you can also specify the quality of the image
                       />
                       <span className="text-xs md:text-sm font-light text-center hover:opacity-80">
                         {duplicateProduct?.color?.name.toUpperCase()}
@@ -284,41 +296,40 @@ const ProductDetails = ({ params }) => {
                   ))}
               </div>
             </div>
-            <hr />
+            
+            <Separator />
+
             {/* Offers */}
             {productDetails?.offers && <span>{productDetails?.offers}</span>}
 
             {/* Size selection */}
-            <div className="flex flex-col gap-4 md:gap-5">
+            <div className="flex flex-col gap-4 md:gap-5 ">
               <h2 className="font-bold text-xl md:text-2xl">
                 Size {productDetails?.size?.name}{" "}
               </h2>
               <div className="overflow-x-auto w-full flex gap-4 md:gap-6 py-2 px-1">
-                {productDetails?.size?.map((duplicateProduct) => (
-                  <p
-                    key={duplicateProduct?._id}
-                    onClick={() => {
-                      setsSelectedSize(duplicateProduct?._id);
-                    }}
-                    className={cn(
-                      clsx(
-                        "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
-                        {
-                          "border-2 border-black hover:opacity-100 cursor-default":
-                            selectedSize === duplicateProduct?._id,
-                        }
-                      )
-                    )}
-                  >
-                    {duplicateProduct?.name}
-                  </p>
-                ))}
+                <p
+                  // onClick={() => {
+                  //   setsSelectedSize(duplicateProduct?._id);
+                  // }}
+                  className={cn(
+                    clsx(
+                      "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
+                      {
+                        "border-2 border-black hover:opacity-100 cursor-default":
+                          productDetails?.size?._id,
+                      }
+                    )
+                  )}
+                >
+                  {productDetails?.size?.name}
+                </p>
               </div>
             </div>
-            <hr />
+            <Separator />
 
             {/* Buying buttons */}
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col md:flex-row col-span-1 p-3 pr-0">
                 {productDetails?.stock <= 0 ? (
                   <p className="m-auto text-red-500 text-xs md:text-sm font-bold">

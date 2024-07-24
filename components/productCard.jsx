@@ -10,127 +10,77 @@ import {
   Heart,
   HeartOff,
   Loader,
-  LucideHeartCrack,
   LucideTrash2,
   ShoppingCartIcon,
 } from "lucide-react";
-import axios from "axios";
-import { toast } from "./ui/use-toast";
-import { useAuth } from "@/context/authContext";
-import { server } from "@/lib/utils";
 import useCartStore from "@/stores/useCartStore";
+import { useAuth } from "@/context/authContext";
+import useWishlistStore from "@/stores/useWishlistStore";
 
-const ProductCard = ({
-  detail,
-  wishlist,
-  className,
-  handleRemoveFromCart,
-  handleAddToCart,
-  cart,
-  handleAddToWishlist,
-  handleRemoveFromWishlist,
-  carLoading,
-  wishListLoading,
-}) => {
+const ProductCard = ({ detail, className }) => {
   const router = useRouter();
 
-  const { user, loading: authLoading } = useAuth();
-  const [buttonLoadingState, setButtonLoadingState] = useState(false);
-  const [isPresentOnWishList, setisPresentOnWishList] = useState(false);
-  const [wishListProducts, setWishListProducts] = useState([]);
+  const { cart, addProduct, removeProduct, fetchCart } = useCartStore();
+  const {
+    wishlist,
+    fetchWishlist,
+    addProductToWishlist,
+    removeProductFromWishlist,
+  } = useWishlistStore();
+
   const [isInCart, setIsInCart] = useState(
-    cart.some((item) => item?.product?._id === detail?._id)
+    cart?.some((item) => item?.product._id === detail?._id)
   );
   const [isInWishlist, setIsInWishlist] = useState(
-    wishlist.some((item) => item?._id === detail?._id)
+    wishlist.some((item) => item?.product?._id === detail?._id)
   );
+  const [localCartLoading, setLocalCartLoading] = useState(false);
+  const [localWishlistLoading, setLocalWishlistLoading] = useState(false);
+
+  const checkIfInCart = () => {
+    setIsInCart(cart?.some((item) => item?.product._id === detail?._id));
+  };
+
+  const checkIfInWishlist = () => {
+    setIsInWishlist(
+      wishlist.some((item) => item?.product?._id === detail?._id)
+    );
+  };
+
+  const handleCartClick = async () => {
+    setLocalCartLoading(true);
+    if (isInCart) {
+      await removeProduct(detail?._id);
+    } else {
+      await addProduct(detail?._id, 1);
+    }
+    fetchCart();
+    checkIfInCart();
+    setLocalCartLoading(false);
+  };
+
+  const handleWishlistClick = async () => {
+    setLocalWishlistLoading(true);
+    if (isInWishlist) {
+      await removeProductFromWishlist(detail?._id);
+    } else {
+      await addProductToWishlist(detail?._id);
+    }
+    fetchWishlist();
+    checkIfInWishlist();
+    setLocalWishlistLoading(false);
+  };
+
+  useEffect(() => {
+    checkIfInCart();
+  }, [cart]);
+
+  useEffect(() => {
+    checkIfInWishlist();
+  }, [wishlist]);
 
   const onClick = () => {
     router.push(`/product/${detail?._id}`);
-  };
-
-  useEffect(() => {
-    setIsInCart(cart.some((item) => item?.product?._id === detail?._id));
-  }, [isInCart, cart, detail]);
-
-  useEffect(() => {
-    setIsInWishlist(wishlist.some((item) => item?._id === detail?._id));
-  }, [wishlist, detail]);
-
-  const addToWishlistHandler = async (productId) => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Please login to perfrom the action",
-      });
-      return;
-    }
-    setButtonLoadingState(true);
-    try {
-      const { data } = await axios.post(
-        `${server}/auth/wishlist/${productId}`,
-        {},
-        {
-          withCredentials: true, // Include credentials for cookies
-        }
-      );
-
-      if (data.success) {
-        setWishListProducts((prevProducts) => [
-          ...prevProducts,
-          { _id: productId },
-        ]);
-        setisPresentOnWishList(true);
-        toast({
-          variant: "success",
-          title: "Added to wishlist successfully",
-        });
-      }
-      setButtonLoadingState(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to add to wishlist",
-      });
-      setButtonLoadingState(false);
-    }
-  };
-
-  const removeFromWishlistHandler = async (productId) => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Please login to perfrom the action",
-      });
-      return;
-    }
-    setButtonLoadingState(true);
-    try {
-      const { data } = await axios.delete(
-        `${server}/auth/wishlist/remove/${productId}`,
-        {
-          withCredentials: true, // Include credentials for cookies
-        }
-      );
-
-      if (data.success) {
-        setisPresentOnWishList(false);
-        toast({
-          variant: "success",
-          title: "Removed from wishlist successfully",
-        });
-        setWishListProducts((prevProducts) =>
-          prevProducts.filter((product) => product._id !== productId)
-        );
-      }
-      setButtonLoadingState(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to remove from wishlist",
-      });
-      setButtonLoadingState(false);
-    }
   };
 
   return (
@@ -151,64 +101,57 @@ const ProductCard = ({
         <div className=" flex flex-col gap-5 justify-center items-center w-full">
           <div className="grid grid-cols-6 w-full" onClick={onClick}>
             <p className="text-sm md:text-base font-semibold col-span-5 ">
-              <CustomTooltip description={detail?.title} side="top">
-                {detail?.title?.slice(0, 30)} ...
+              <CustomTooltip content={detail?.title} side="top">
+                <span>{detail?.title?.slice(0, 30)} ...</span>
               </CustomTooltip>
             </p>
             <span className="text-xs md:text-sm col-span-1">
               ${detail?.price}
             </span>
           </div>
-          <div className=" w-full grid grid-cols-4 gap-5">
+          <div className=" w-full flex justify-center items-center gap-5">
             <CustomTooltip
-              className={" w-full col-span-2"}
               side="left"
-              description={isInCart ? "Remove From Cart" : "Add To Cart"}
+              content={isInCart ? "Remove From Cart" : "Add To Cart"}
             >
               <Button
-                className=" w-full flex items-center justify-center"
-                onClick={() =>
-                  isInCart
-                    ? handleRemoveFromCart(detail?._id)
-                    : handleAddToCart(detail?._id, 1)
-                }
+                className="w-full flex items-center justify-center"
+                onClick={handleCartClick}
+                disabled={localCartLoading}
               >
                 {isInCart ? (
-                  carLoading ? (
+                  localCartLoading ? (
                     <Loader className="text-white animate-spin" />
                   ) : (
                     <LucideTrash2 />
                   )
-                ) : wishListLoading ? (
+                ) : localCartLoading ? (
                   <Loader className="text-white animate-spin" />
                 ) : (
                   <ShoppingCartIcon />
                 )}
               </Button>
             </CustomTooltip>
+
             <CustomTooltip
-              className={" w-full col-span-2"}
               side="right"
-              description={
+              content={
                 isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"
               }
             >
               <Button
                 variant="destructive"
                 className="  w-full flex items-center justify-center  "
-                onClick={() =>
-                  isInWishlist
-                    ? handleRemoveFromWishlist(detail?._id)
-                    : handleAddToWishlist(detail?._id)
-                }
+                onClick={handleWishlistClick}
+                disabled={localWishlistLoading}
               >
                 {isInWishlist ? (
-                  wishListLoading ? (
+                  localWishlistLoading ? (
                     <Loader className="text-white animate-spin" />
                   ) : (
                     <HeartOff className={clsx("text-white")} />
                   )
-                ) : wishListLoading ? (
+                ) : localWishlistLoading ? (
                   <Loader className="text-white animate-spin" />
                 ) : (
                   <Heart className={clsx("text-white")} />

@@ -6,7 +6,7 @@ module.exports = nextConfig
 // next.config.js
 module.exports = {
     images: {
-      domains: ['images.puma.com'],
+      domains: ['images.puma.com','res.cloudinary.com'],
     },
   };
   

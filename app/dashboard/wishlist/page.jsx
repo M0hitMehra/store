@@ -1,6 +1,5 @@
 "use client";
 
-import CustomTooltip from "@/components/custom-tooltip";
 import Loader from "@/components/loader";
 import ProductCard from "@/components/productCard";
 import { toast } from "@/components/ui/use-toast";
@@ -14,58 +13,20 @@ import React, { useEffect, useState } from "react";
 
 const Wishlist = () => {
   const [wishListProducts, setWishListProducts] = useState(null);
-  const [buttonLoadingState, setButtonLoadingState] = useState(false);
 
-  const {
-    cart,
-    fetchCart,
-    addProduct,
-    removeProduct,
-    updateProductQuantity,
-    loading: carLoading,
-    error,
-  } = useCartStore();
+  const { fetchCart } = useCartStore();
 
-  const {
-    wishlist,
-    fetchWishlist,
-    addProductToWishlist,
-    removeProductFromWishlist,
-    loading: wishListLoading,
-    // error,
-  } = useWishlistStore();
+  const { fetchWishlist, wishlist } = useWishlistStore();
 
   useEffect(() => {
     fetchCart();
-  }, [fetchCart]);
-
-  const handleAddToCart = async (productId, quantity = 1) => {
-    await addProduct(productId, quantity);
-    fetchCart();
-
-    // alert(12)
-  };
-
-  const handleRemoveFromCart = async (productId) => {
-    await removeProduct(productId);
-    fetchCart();
-  };
+  }, []);
 
   useEffect(() => {
     fetchWishlist();
-  }, [fetchWishlist]);
+  }, []);
 
-  const handleAddToWishlist = async (productId) => {
-    await addProductToWishlist(productId);
-    fetchWishlist();
-  };
-
-  const handleRemoveFromWishlist = async (productId) => {
-    await removeProductFromWishlist(productId);
-    fetchWishlist();
-  };
-
-  const getRecentlyVisited = async () => {
+  const getWishlistedItem = async () => {
     const { data } = await axios.get(
       `${server}/auth/wishlist`,
 
@@ -79,8 +40,8 @@ const Wishlist = () => {
   };
 
   useEffect(() => {
-    getRecentlyVisited();
-  }, []);
+    getWishlistedItem();
+  }, [wishlist]);
 
   return (
     <>
@@ -88,23 +49,15 @@ const Wishlist = () => {
         <>
           {wishListProducts && wishListProducts?.length > 0 ? (
             <div className=" flex flex-wrap gap-20 px-20 py-10 justify-center items-start">
-              {wishListProducts?.map((product) => (
+              {wishListProducts?.map((item) => (
                 <div
                   className=" flex flex-col justify-center items-center "
-                  key={product?._id}
+                  key={item?._id}
                 >
                   <ProductCard
-                    key={product?._id}
-                    detail={product}
+                    key={item?._id}
+                    detail={item?.product}
                     className={"w-[200px] md:w-[280px] "}
-                    cart={cart}
-                    wishlist={wishlist}
-                    handleAddToCart={handleAddToCart}
-                    handleRemoveFromCart={handleRemoveFromCart}
-                    handleAddToWishlist={handleAddToWishlist}
-                    handleRemoveFromWishlist={handleRemoveFromWishlist}
-                    carLoading={carLoading}
-                    wishListLoading={wishListLoading}
                   />
                 </div>
               ))}
