@@ -22,6 +22,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/authContext";
 import Slider from "@/components/slider";
 import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 
 
 const ProductDetails = ({ params }) => {
@@ -295,7 +296,8 @@ const ProductDetails = ({ params }) => {
                   ))}
               </div>
             </div>
-            <hr />
+            
+            <Separator />
 
             {/* Offers */}
             {productDetails?.offers && <span>{productDetails?.offers}</span>}
@@ -324,10 +326,10 @@ const ProductDetails = ({ params }) => {
                 </p>
               </div>
             </div>
-            <hr />
+            <Separator />
 
             {/* Buying buttons */}
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col md:flex-row col-span-1 p-3 pr-0">
                 {productDetails?.stock <= 0 ? (
                   <p className="m-auto text-red-500 text-xs md:text-sm font-bold">
