@@ -7,7 +7,7 @@ import clsx from "clsx";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "../../globals.css";
-import { cn, server } from "@/lib/utils";
+import { cn, invertColor, server } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import SingleProductCarousel from "@/components/singleProductCarousel";
 import {
@@ -24,13 +24,11 @@ import Slider from "@/components/slider";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 
-
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
   const [loading, setLoading] = useState(true);
   const [productDetails, setProductDetails] = useState(null);
   const [duplicateProductDetails, setDuplicateProductDetails] = useState([]);
-  const [selectedSize, setsSelectedSize] = useState("");
   const [selectedStock, setSelectedStock] = useState(1);
   const [error, setError] = useState(null);
   const [buttonLoadingState, setButtonLoadingState] = useState(false);
@@ -52,18 +50,11 @@ const ProductDetails = ({ params }) => {
       try {
         const { data } = await axios.get(`${server}/product/${product_id}`);
         if (data.success) {
+          let vairants = data?.product?.variants
           setProductDetails(data?.product);
-          setsSelectedSize(data?.product?.size?.[0]?._id);
-
-          const productWithDifferentAttributes = await axios.get(
-            `${server}/products`,
-            {
-              params: { title: data?.product?.title },
-            }
-          );
-          setDuplicateProductDetails(
-            productWithDifferentAttributes?.data?.products
-          );
+          vairants?.push(data.product);
+           setDuplicateProductDetails(vairants);
+          console.log(data?.product?.variants,vairants,"sdsada");
         } else {
           setError(data.error);
         }
@@ -257,8 +248,21 @@ const ProductDetails = ({ params }) => {
             <div className="flex flex-col gap-4 md:gap-6">
               <div>
                 <h2 className="font-bold text-xl md:text-2xl">Color</h2>
-                <p className="font-light text-sm">
+
+                <p className="font-light text-sm flex gap-3 items-center">
                   {productDetails?.color?.name.toUpperCase()}
+                  <span
+                    className="rounded-full w-3 h-3 shadow-md"
+                    style={{
+                      backgroundColor: productDetails?.color?.code,
+                      borderColor: invertColor(
+                        productDetails?.color?.code || "#ffffff"
+                      ),
+                      boxShadow: `0 0 2px ${invertColor(
+                        productDetails?.color?.code || "#ffffff"
+                      )}`,
+                    }}
+                  ></span>
                 </p>
               </div>
 
@@ -281,22 +285,35 @@ const ProductDetails = ({ params }) => {
                         width={200}
                         height={80}
                         className={clsx(
-                          " max-w-24 h-20 hover:opacity-80 color-select-images",
+                          " max-w-24 h-20 opacity-70 hover:opacity-100 color-select-images",
                           {
-                            "border-2 border-black rounded-md hover:opacity-100 cursor-default":
+                            "border-2 border-black rounded-md hover:opacity-100 cursor-default opacity-100":
                               duplicateProduct?._id === productDetails?._id,
                           }
                         )}
                         quality={75} // you can also specify the quality of the image
                       />
-                      <span className="text-xs md:text-sm font-light text-center hover:opacity-80">
+
+                      <p className="text-xs md:text-sm font-light text-center hover:opacity-80 flex gap-3 items-center justify-center">
                         {duplicateProduct?.color?.name.toUpperCase()}
-                      </span>
+                        <span
+                          className="rounded-full w-3 h-3 shadow-md"
+                          style={{
+                            backgroundColor: duplicateProduct?.color?.code,
+                            borderColor: invertColor(
+                              duplicateProduct?.color?.code || "#ffffff"
+                            ),
+                            boxShadow: `0 0 2px ${invertColor(
+                              duplicateProduct?.color?.code || "#ffffff"
+                            )}`,
+                          }}
+                        ></span>
+                      </p>
                     </div>
                   ))}
               </div>
             </div>
-            
+
             <Separator />
 
             {/* Offers */}
