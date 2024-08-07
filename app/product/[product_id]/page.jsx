@@ -50,11 +50,11 @@ const ProductDetails = ({ params }) => {
       try {
         const { data } = await axios.get(`${server}/product/${product_id}`);
         if (data.success) {
-          let vairants = data?.product?.variants
+          let vairants = data?.product?.variants;
           setProductDetails(data?.product);
           vairants?.push(data.product);
-           setDuplicateProductDetails(vairants);
-          console.log(data?.product?.variants,vairants,"sdsada");
+          setDuplicateProductDetails(vairants);
+          console.log(data?.product?.variants, vairants, "sdsada");
         } else {
           setError(data.error);
         }
@@ -239,7 +239,7 @@ const ProductDetails = ({ params }) => {
                 {productDetails?.title}
               </h1>
               <h5 className="text-sm md:text-base font-semibold flex flex-col gap-1">
-                ${formatNumberWithCommas(productDetails?.price)}{" "}
+                ₹ {formatNumberWithCommas(productDetails?.price)}{" "}
                 <span className="font-light text-xs">Prices include GST</span>
               </h5>
             </div>
@@ -285,10 +285,14 @@ const ProductDetails = ({ params }) => {
                         width={200}
                         height={80}
                         className={clsx(
-                          " max-w-24 h-20 opacity-70 hover:opacity-100 color-select-images",
+                          " max-w-24 h-20  hover:opacity-100 color-select-images",
                           {
                             "border-2 border-black rounded-md hover:opacity-100 cursor-default opacity-100":
                               duplicateProduct?._id === productDetails?._id,
+                          },
+                          {
+                            "opacity-70":
+                              duplicateProduct?._id !== productDetails?._id,
                           }
                         )}
                         quality={75} // you can also specify the quality of the image
@@ -320,29 +324,47 @@ const ProductDetails = ({ params }) => {
             {productDetails?.offers && <span>{productDetails?.offers}</span>}
 
             {/* Size selection */}
-            <div className="flex flex-col gap-4 md:gap-5 ">
-              <h2 className="font-bold text-xl md:text-2xl">
-                Size {productDetails?.size?.name}{" "}
-              </h2>
-              <div className="overflow-x-auto w-full flex gap-4 md:gap-6 py-2 px-1">
-                <p
-                  // onClick={() => {
-                  //   setsSelectedSize(duplicateProduct?._id);
-                  // }}
-                  className={cn(
-                    clsx(
-                      "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
-                      {
-                        "border-2 border-black hover:opacity-100 cursor-default":
-                          productDetails?.size?._id,
-                      }
-                    )
-                  )}
-                >
-                  {productDetails?.size?.name}
+
+            <div className="flex flex-col gap-4 md:gap-6">
+              <div>
+                <h2 className="font-bold text-xl md:text-2xl">Size</h2>
+
+                <p className="font-light text-sm flex gap-3 items-center">
+                  {productDetails?.size?.name.toUpperCase()}
                 </p>
               </div>
+
+              <div className="color-select overflow-x-auto w-full flex gap-4 md:gap-6 px-1">
+                {duplicateProductDetails?.length &&
+                  duplicateProductDetails?.map((duplicateProduct) => (
+                    <div
+                      key={duplicateProduct?._id}
+                      className="flex flex-col gap-1 cursor-pointer"
+                      onClick={() => {
+                        router.replace(`/product/${duplicateProduct?._id}`);
+                      }}
+                    >
+                      <p
+                        // onClick={() => {
+                        //   setsSelectedSize(duplicateProduct?._id);
+                        // }}
+                        className={cn(
+                          clsx(
+                            "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
+                            {
+                              "border-2 border-black hover:opacity-100 cursor-default":
+                                productDetails?._id === duplicateProduct?._id,
+                            }
+                          )
+                        )}
+                      >
+                        {productDetails?.size?.name}
+                      </p>
+                    </div>
+                  ))}
+              </div>
             </div>
+
             <Separator />
 
             {/* Buying buttons */}
