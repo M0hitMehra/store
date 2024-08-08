@@ -36,6 +36,11 @@ const ProductDetails = ({ params }) => {
   const [recentProducts, setRecentProducts] = useState(null);
   const [isPresentOnWishList, setisPresentOnWishList] = useState(false);
 
+  const [filteredColors, setFilteredColors] = useState([]);
+  const [filteredSizes, setFilteredSizes] = useState([]);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+
   const router = useRouter();
 
   function formatNumberWithCommas(number) {
@@ -50,11 +55,10 @@ const ProductDetails = ({ params }) => {
       try {
         const { data } = await axios.get(`${server}/product/${product_id}`);
         if (data.success) {
-          let vairants = data?.product?.variants;
-          setProductDetails(data?.product);
-          vairants?.push(data.product);
-          setDuplicateProductDetails(vairants);
-          console.log(data?.product?.variants, vairants, "sdsada");
+          let variants = data.product.variants;
+          setProductDetails(data.product);
+          variants.push(data.product);
+          setDuplicateProductDetails(variants);
         } else {
           setError(data.error);
         }
@@ -67,6 +71,47 @@ const ProductDetails = ({ params }) => {
 
     fetchProductDetails();
   }, [product_id]);
+
+  useEffect(() => {
+    if (duplicateProductDetails.length > 0) {
+      // Filter sizes based on selected color
+      if (selectedColor) {
+        const sizes = duplicateProductDetails
+          .filter((variant) => variant.color._id === selectedColor)
+          .map((variant) => variant.size);
+        setFilteredSizes(sizes);
+      } else {
+        setFilteredSizes(
+          Array.from(
+            new Set(duplicateProductDetails.map((variant) => variant.size))
+          )
+        );
+      }
+
+      // Filter colors based on selected size
+      if (selectedSize) {
+        const colors = duplicateProductDetails
+          .filter((variant) => variant.size._id === selectedSize)
+          .map((variant) => variant.color);
+        setFilteredColors(colors);
+      } else {
+        setFilteredColors(
+          Array.from(
+            new Set(duplicateProductDetails.map((variant) => variant.color))
+          )
+        );
+      }
+    }
+  }, [selectedColor, selectedSize, duplicateProductDetails]);
+
+  // Handle color and size selection
+  const handleColorSelect = (colorId) => {
+    setSelectedColor(colorId);
+  };
+
+  const handleSizeSelect = (sizeId) => {
+    setSelectedSize(sizeId);
+  };
 
   useEffect(() => {
     (async () => {
@@ -243,6 +288,71 @@ const ProductDetails = ({ params }) => {
                 <span className="font-light text-xs">Prices include GST</span>
               </h5>
             </div>
+            <Separator />
+
+            {/* Options */}
+            <div className=" flex flex-col gap-3 justify-center items-start">
+              <div className=" flex flex-col gap-5 justify-center items-start">
+                <div className="flex flex-col gap-3 ">
+                  <h1 className="font-bold text-xl md:text-2xl">Options</h1>
+                  <p className="font-light text-sm flex gap-3 items-center">
+                    {productDetails?.color?.name.toUpperCase()}
+                    <span
+                      className="rounded-full w-3 h-3 shadow-md"
+                      style={{
+                        backgroundColor: productDetails?.color?.code,
+                        borderColor: invertColor(
+                          productDetails?.color?.code || "#ffffff"
+                        ),
+                        boxShadow: `0 0 2px ${invertColor(
+                          productDetails?.color?.code || "#ffffff"
+                        )}`,
+                      }}
+                    ></span>
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 ">
+                  <h1 className="font-bold text-xl md:text-xl">
+                    Available Sizes For{" "}
+                    {productDetails?.color?.name.toUpperCase()} Color
+                  </h1>
+
+                  <div className="color-select overflow-x-auto w-full flex gap-4 md:gap-6 px-1">
+                    {filteredSizes?.length &&
+                      filteredSizes?.map((duplicateProduct) => (
+                        <div
+                          key={duplicateProduct?._id}
+                          className="flex flex-col gap-1 cursor-pointer"
+                          onClick={() => {
+                            router.replace(`/product/${duplicateProduct?._id}`);
+                          }}
+                        >
+                          <p
+                            // onClick={() => {
+                            //   setsSelectedSize(duplicateProduct?._id);
+                            // }}
+                            className={cn(
+                              clsx(
+                                "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
+                                {
+                                  "border-2 border-black hover:opacity-100 cursor-default":
+                                    productDetails?._id ===
+                                    duplicateProduct?._id,
+                                }
+                              )
+                            )}
+                          >
+                            {productDetails?.size?.name}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
 
             {/* Color choice */}
             <div className="flex flex-col gap-4 md:gap-6">
