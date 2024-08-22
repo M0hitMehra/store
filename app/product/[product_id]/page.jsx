@@ -23,6 +23,8 @@ import { useAuth } from "@/context/authContext";
 import Slider from "@/components/slider";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
+import useCartStore from "@/stores/useCartStore";
+import useWishlistStore from "@/stores/useWishlistStore";
 
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
@@ -40,6 +42,14 @@ const ProductDetails = ({ params }) => {
   const [filteredSizes, setFilteredSizes] = useState([]);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
+  const {
+    wishlist,
+    fetchWishlist,
+    addProductToWishlist,
+    removeProductFromWishlist,
+    loading: wishlistLoading,
+  } = useWishlistStore();
+  const { cart, addProduct, removeProduct, fetchCart } = useCartStore();
 
   const router = useRouter();
 
@@ -113,96 +123,53 @@ const ProductDetails = ({ params }) => {
     setSelectedSize(sizeId);
   };
 
+  const [isInWishlist, setIsInWishlist] = useState(
+    wishlist.some((item) => item?.product?._id === productDetails?._id)
+  );
+
+  const [isInCart, setIsInCart] = useState(
+    cart?.some((item) => item?.product._id === productDetails?._id)
+  );
+
+  const checkIfInWishlist = () => {
+    setIsInWishlist(
+      wishlist.some((item) => item?.product?._id === productDetails?._id)
+    );
+  };
+
+  const checkIfInCart = () => {
+    setIsInCart(
+      cart?.some((item) => item?.product._id === productDetails?._id)
+    );
+  };
+
+  const handleWishlistClick = async () => {
+    if (isInWishlist) {
+      await removeProductFromWishlist(productDetails?._id);
+    } else {
+      await addProductToWishlist(productDetails?._id);
+    }
+    fetchWishlist();
+    checkIfInWishlist();
+  };
+
+  const handleCartClick = async () => {
+    if (isInCart) {
+      await removeProduct(productDetails?._id);
+    } else {
+      await addProduct(productDetails?._id, 1);
+    }
+    fetchCart();
+    checkIfInCart();
+  };
+
   useEffect(() => {
-    (async () => {
-      if (user) {
-        let wishlist = user?.wishlist;
-        let doesExist = wishlist?.includes(product_id);
-        setisPresentOnWishList(doesExist);
-        try {
-          const historyResponse = await axios.post(
-            `${server}/auth/user/history/${product_id}`,
-            {},
-            {
-              headers: { "Content-Type": "application/json" },
-              withCredentials: true,
-            }
-          );
-        } catch (error) {}
-      }
-    })();
-  }, [user, product_id]);
+    checkIfInWishlist();
+  }, [wishlist]);
 
-  const addToWishlistHandler = async () => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Please login to perfrom the action",
-      });
-      return;
-    }
-    setButtonLoadingState(true);
-    const productId = product_id;
-    try {
-      const { data } = await axios.post(
-        `${server}/auth/wishlist/${productId}`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
-
-      if (data.success) {
-        setisPresentOnWishList(true);
-        toast({
-          variant: "success",
-          title: "Added to wishlist successfully",
-        });
-      }
-      setButtonLoadingState(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to add to wishlist",
-      });
-      setButtonLoadingState(false);
-    }
-  };
-
-  const removeFromWishlistHandler = async () => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Please login to perfrom the action",
-      });
-      return;
-    }
-    setButtonLoadingState(true);
-    const productId = product_id;
-    try {
-      const { data } = await axios.delete(
-        `${server}/auth/wishlist/remove/${productId}`,
-        {
-          withCredentials: true, // Include credentials for cookies
-        }
-      );
-
-      if (data.success) {
-        setisPresentOnWishList(false);
-        toast({
-          variant: "success",
-          title: "Removed from wishlist successfully",
-        });
-      }
-      setButtonLoadingState(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to remove from wishlist",
-      });
-      setButtonLoadingState(false);
-    }
-  };
+  useEffect(() => {
+    checkIfInCart();
+  }, [cart]);
 
   const getRecentlyVisited = async () => {
     if (!user) {
@@ -356,8 +323,12 @@ const ProductDetails = ({ params }) => {
 
             {/* Color choice */}
             <div className="flex flex-col gap-4 md:gap-6">
-              <div>
-                <h2 className="font-bold text-xl md:text-2xl">Color</h2>
+              <div className=" flex flex-col gap-3 justify-center items-start">
+                <h2 className="font-bold text-xl md:text-2xl">
+                  {duplicateProductDetails.length > 0
+                    ? "Other Available Colors:"
+                    : "No Other Colors Available"}
+                </h2>
 
                 <p className="font-light text-sm flex gap-3 items-center">
                   {productDetails?.color?.name.toUpperCase()}
@@ -436,8 +407,13 @@ const ProductDetails = ({ params }) => {
             {/* Size selection */}
 
             <div className="flex flex-col gap-4 md:gap-6">
-              <div>
-                <h2 className="font-bold text-xl md:text-2xl">Size</h2>
+              <div className=" flex flex-col gap-3 justify-center items-start">
+                <h2 className="font-bold text-xl md:text-2xl">
+                  {" "}
+                  {duplicateProductDetails.length > 0
+                    ? "Other Available Sizes:"
+                    : "No Other Sizes Available"}
+                </h2>
 
                 <p className="font-light text-sm flex gap-3 items-center">
                   {productDetails?.size?.name.toUpperCase()}
@@ -455,9 +431,6 @@ const ProductDetails = ({ params }) => {
                       }}
                     >
                       <p
-                        // onClick={() => {
-                        //   setsSelectedSize(duplicateProduct?._id);
-                        // }}
                         className={cn(
                           clsx(
                             "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
@@ -486,51 +459,60 @@ const ProductDetails = ({ params }) => {
                   </p>
                 ) : (
                   <>
-                    <Button
-                      className="w-8 h-8 md:w-10 md:h-10"
-                      onClick={() => {
-                        setSelectedStock((prev) =>
-                          productDetails?.stock > prev ? prev + 1 : prev
-                        );
-                      }}
-                    >
-                      +
-                    </Button>
-                    <input
-                      type="text"
-                      className="w-8 h-8 md:w-10 md:h-10 text-center"
-                      value={selectedStock}
-                    />
-                    <Button
-                      className="w-8 h-8 md:w-10 md:h-10"
-                      onClick={() => {
-                        setSelectedStock((prev) => (prev === 1 ? 1 : prev - 1));
-                      }}
-                    >
-                      -
-                    </Button>
+                    {!isInCart && (
+                      <>
+                        <Button
+                          className="w-8 h-8 md:w-10 md:h-10"
+                          onClick={() => {
+                            setSelectedStock((prev) =>
+                              productDetails?.stock > prev ? prev + 1 : prev
+                            );
+                          }}
+                        >
+                          +
+                        </Button>
+                        <input
+                          type="text"
+                          className="w-8 h-8 md:w-10 md:h-10 text-center"
+                          value={selectedStock}
+                          readOnly
+                        />
+                        <Button
+                          className="w-8 h-8 md:w-10 md:h-10"
+                          onClick={() => {
+                            setSelectedStock((prev) =>
+                              prev === 1 ? 1 : prev - 1
+                            );
+                          }}
+                        >
+                          -
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
               <div className="col-span-2 flex flex-col gap-2 md:gap-4 p-3 pl-0">
-                {productDetails?.stock > 0 && <Button>Add To Cart</Button>}
-                {isPresentOnWishList ? (
+                {productDetails?.stock > 0 && (
+                  <Button onClick={handleCartClick} disabled={isInCart}>
+                    {!isInCart ? <> Add To Cart</> : <> Go to cart</>}
+                  </Button>
+                )}
+                {isInWishlist ? (
                   <Button
                     variant={"outline"}
-                    onClick={removeFromWishlistHandler}
-                    disabled={buttonLoadingState}
+                    onClick={handleWishlistClick}
+                    disabled={wishlistLoading}
                   >
-                    {buttonLoadingState
-                      ? "Removing..."
-                      : "Remove From Wishlist"}
+                    {wishlistLoading ? "Removing..." : "Remove From Wishlist"}
                   </Button>
                 ) : (
                   <Button
                     variant={"outline"}
-                    onClick={addToWishlistHandler}
-                    disabled={buttonLoadingState}
+                    onClick={handleWishlistClick}
+                    disabled={wishlistLoading}
                   >
-                    {buttonLoadingState ? "Adding..." : "Add To Wishlist"}
+                    {wishlistLoading ? "Adding..." : "Add To Wishlist"}
                   </Button>
                 )}
               </div>
@@ -616,13 +598,13 @@ const ProductDetails = ({ params }) => {
             </div>
           )}
 
-        {/* You may also like */}
+        {/* Recently Visited */}
         <div className=" flex flex-col gap-1">
           <h1 className=" pl-9 text-2xl font-bold">Recently Visited</h1>
           <Slider data={recentProducts} />
         </div>
 
-        {/* Recently Visited */}
+        {/* You may also like section */}
       </div>
     </>
   );
