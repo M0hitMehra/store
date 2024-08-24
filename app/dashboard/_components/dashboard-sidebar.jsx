@@ -42,7 +42,7 @@ const DashboardSidebar = () => {
 
   return (
     <>
-      <div className=" hidden bg-purple-700 h-screen  pt-8 md:w-72 w-16 relative  duration-500 md:flex items-center  flex-col border-black p-4 bg-gradient-to-r from-slate-500 to-slate-800 shadow-lg shadow-black">
+      <div className=" hidden bg-purple-700 h-full  pt-8 md:w-72 w-16 relative  duration-500 md:flex items-center  flex-col border-black p-4 bg-gradient-to-r from-slate-500 to-slate-800 shadow-lg shadow-black">
         <ul className="space-y-4">
           {links.map(({ href, label }) => (
             <li key={href}>

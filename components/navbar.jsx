@@ -740,7 +740,7 @@ const Navbar = () => {
           hoveredLink.toLowerCase() === item.category.toLowerCase() && (
             <div
               key={item?.category}
-              className=" overflow-scroll scroll-smooth flex justify-start items-start gap-28 py-10 px-5 absolute text-white max-h-[90vh]  w-full z-20 bg-[#ffffff]"
+              className=" overflow-scroll scroll-smooth flex justify-start items-start gap-28 py-10 px-5 absolute text-white max-h-[80vh]  w-full z-20 bg-[#ffffff]"
               onMouseEnter={() => {
                 setHoveredLink(item?.category);
               }}

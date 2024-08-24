@@ -37,7 +37,7 @@ const RecentlyVisited = () => {
   }, []);
 
   return (
-    <div className=" h-screen w-full">
+    <div className=" h-full w-full">
       {recentProducts ? (
         <>
           {recentProducts && recentProducts?.length > 0 ? (

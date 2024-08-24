@@ -2,7 +2,7 @@ import React from 'react'
 
 const Cart = () => {
   return (
-    <div>Cart</div>
+    <div className=' border-2 w-full h-full'>Cart</div>
   )
 }
 
