@@ -20,7 +20,7 @@ import { InputOTPForm } from "@/components/input-otp";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
- import axios from "axios";
+import axios from "axios";
 import { toast } from "@/components/ui/use-toast";
 import { Edit, ShieldBan } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
@@ -277,7 +277,7 @@ const UserProfile = () => {
   return (
     <>
       {user ? (
-        <div className="px-5 py-5 md:px-20 md:py-10 flex justify-center items-center fixed -mt-10  h-screen">
+        <div className="px-5 py-5 md:px-20 md:py-10 flex justify-center items-start fixed -mt-10  h-full">
           <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center ">
             {/* give background blur */}
             <div className="col-span-1 relative md:col-span-2 flex flex-col gap-6 justify-center items-center p-4 md:p-8     rounded-lg shadow-black shadow-sm ">

@@ -11,13 +11,9 @@ const DashboardLayout = ({ children }) => {
     return <Loader />;
   }
   return (
-    <div>
-      <div className="xl:p-0 pt-20 flex min-h-screen">
-        <DashboardSidebar />
-        <div className="mt-[16.6667%] md:ml-[16.6667%] md:mt-0 flex-grow bg-gradient-to-r  from-purple-600 to-indigo-600  ">
-          {children}
-        </div>
-      </div>
+    <div className=" h-[88vh] w-[100vw] flex">
+      <DashboardSidebar />
+      <div className=" w-full h-full overflow-y-auto lg:p-8 p-2 ">{children}</div>
     </div>
   );
 };

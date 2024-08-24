@@ -34,6 +34,7 @@ const DashboardSidebar = () => {
   const links = [
     { href: "/dashboard", label: "My Profile" },
     { href: "/dashboard/orders", label: "Orders" },
+    { href: "/dashboard/cart", label: "Cart" },
     { href: "/dashboard/recently-visited", label: "Recently Visited" },
     { href: "/dashboard/wishlist", label: "Wishlist" },
     { href: "/dashboard/contact", label: "Contact Us (Helpline)" },
@@ -41,7 +42,7 @@ const DashboardSidebar = () => {
 
   return (
     <>
-      <div className="fixed  hidden md:block h-screen w-1/6 border-r-2 border-black p-4 bg-gradient-to-r from-slate-500 to-slate-800 shadow-lg shadow-black">
+      <div className=" hidden bg-purple-700 h-full  pt-8 md:w-72 w-16 relative  duration-500 md:flex items-center  flex-col border-black p-4 bg-gradient-to-r from-slate-500 to-slate-800 shadow-lg shadow-black">
         <ul className="space-y-4">
           {links.map(({ href, label }) => (
             <li key={href}>
@@ -76,7 +77,7 @@ const DashboardSidebar = () => {
       </div>
 
       {/* Top bar for small devices */}
-      <div className="fixed md:hidden block py-2 px-4 bg-white shadow-lg z-50 w-full overflow-x-auto dashboard-top-bar">
+      <div className="fixed md:hidden block py-2 px-4 bg-white shadow-lg z-30 w-full overflow-x-auto dashboard-top-bar">
         <ul className="flex gap-4">
           {links.map(({ href, label }) => (
             <li key={href} className="flex-shrink-0">

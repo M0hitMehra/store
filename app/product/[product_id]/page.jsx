@@ -7,7 +7,7 @@ import clsx from "clsx";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "../../globals.css";
-import { cn, server } from "@/lib/utils";
+import { cn, invertColor, server } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import SingleProductCarousel from "@/components/singleProductCarousel";
 import {
@@ -23,20 +23,33 @@ import { useAuth } from "@/context/authContext";
 import Slider from "@/components/slider";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
-
+import useCartStore from "@/stores/useCartStore";
+import useWishlistStore from "@/stores/useWishlistStore";
 
 const ProductDetails = ({ params }) => {
   const { product_id } = params;
   const [loading, setLoading] = useState(true);
   const [productDetails, setProductDetails] = useState(null);
   const [duplicateProductDetails, setDuplicateProductDetails] = useState([]);
-  const [selectedSize, setsSelectedSize] = useState("");
   const [selectedStock, setSelectedStock] = useState(1);
   const [error, setError] = useState(null);
   const [buttonLoadingState, setButtonLoadingState] = useState(false);
   const { user, loading: authLoading } = useAuth();
   const [recentProducts, setRecentProducts] = useState(null);
   const [isPresentOnWishList, setisPresentOnWishList] = useState(false);
+
+  const [filteredColors, setFilteredColors] = useState([]);
+  const [filteredSizes, setFilteredSizes] = useState([]);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const {
+    wishlist,
+    fetchWishlist,
+    addProductToWishlist,
+    removeProductFromWishlist,
+    loading: wishlistLoading,
+  } = useWishlistStore();
+  const { cart, addProduct, removeProduct, fetchCart } = useCartStore();
 
   const router = useRouter();
 
@@ -52,18 +65,10 @@ const ProductDetails = ({ params }) => {
       try {
         const { data } = await axios.get(`${server}/product/${product_id}`);
         if (data.success) {
-          setProductDetails(data?.product);
-          setsSelectedSize(data?.product?.size?.[0]?._id);
-
-          const productWithDifferentAttributes = await axios.get(
-            `${server}/products`,
-            {
-              params: { title: data?.product?.title },
-            }
-          );
-          setDuplicateProductDetails(
-            productWithDifferentAttributes?.data?.products
-          );
+          let variants = data.product.variants;
+          setProductDetails(data.product);
+          variants.push(data.product);
+          setDuplicateProductDetails(variants);
         } else {
           setError(data.error);
         }
@@ -78,95 +83,93 @@ const ProductDetails = ({ params }) => {
   }, [product_id]);
 
   useEffect(() => {
-    (async () => {
-      if (user) {
-        let wishlist = user?.wishlist;
-        let doesExist = wishlist?.includes(product_id);
-        setisPresentOnWishList(doesExist);
-        try {
-          const historyResponse = await axios.post(
-            `${server}/auth/user/history/${product_id}`,
-            {},
-            {
-              headers: { "Content-Type": "application/json" },
-              withCredentials: true,
-            }
-          );
-        } catch (error) {}
+    if (duplicateProductDetails.length > 0) {
+      // Filter sizes based on selected color
+      if (selectedColor) {
+        const sizes = duplicateProductDetails
+          .filter((variant) => variant.color._id === selectedColor)
+          .map((variant) => variant.size);
+        setFilteredSizes(sizes);
+      } else {
+        setFilteredSizes(
+          Array.from(
+            new Set(duplicateProductDetails.map((variant) => variant.size))
+          )
+        );
       }
-    })();
-  }, [user, product_id]);
 
-  const addToWishlistHandler = async () => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Please login to perfrom the action",
-      });
-      return;
-    }
-    setButtonLoadingState(true);
-    const productId = product_id;
-    try {
-      const { data } = await axios.post(
-        `${server}/auth/wishlist/${productId}`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
-
-      if (data.success) {
-        setisPresentOnWishList(true);
-        toast({
-          variant: "success",
-          title: "Added to wishlist successfully",
-        });
+      // Filter colors based on selected size
+      if (selectedSize) {
+        const colors = duplicateProductDetails
+          .filter((variant) => variant.size._id === selectedSize)
+          .map((variant) => variant.color);
+        setFilteredColors(colors);
+      } else {
+        setFilteredColors(
+          Array.from(
+            new Set(duplicateProductDetails.map((variant) => variant.color))
+          )
+        );
       }
-      setButtonLoadingState(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to add to wishlist",
-      });
-      setButtonLoadingState(false);
     }
+  }, [selectedColor, selectedSize, duplicateProductDetails]);
+
+  // Handle color and size selection
+  const handleColorSelect = (colorId) => {
+    setSelectedColor(colorId);
   };
 
-  const removeFromWishlistHandler = async () => {
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Please login to perfrom the action",
-      });
-      return;
-    }
-    setButtonLoadingState(true);
-    const productId = product_id;
-    try {
-      const { data } = await axios.delete(
-        `${server}/auth/wishlist/remove/${productId}`,
-        {
-          withCredentials: true, // Include credentials for cookies
-        }
-      );
-
-      if (data.success) {
-        setisPresentOnWishList(false);
-        toast({
-          variant: "success",
-          title: "Removed from wishlist successfully",
-        });
-      }
-      setButtonLoadingState(false);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to remove from wishlist",
-      });
-      setButtonLoadingState(false);
-    }
+  const handleSizeSelect = (sizeId) => {
+    setSelectedSize(sizeId);
   };
+
+  const [isInWishlist, setIsInWishlist] = useState(
+    wishlist.some((item) => item?.product?._id === productDetails?._id)
+  );
+
+  const [isInCart, setIsInCart] = useState(
+    cart?.some((item) => item?.product._id === productDetails?._id)
+  );
+
+  const checkIfInWishlist = () => {
+    setIsInWishlist(
+      wishlist.some((item) => item?.product?._id === productDetails?._id)
+    );
+  };
+
+  const checkIfInCart = () => {
+    setIsInCart(
+      cart?.some((item) => item?.product._id === productDetails?._id)
+    );
+  };
+
+  const handleWishlistClick = async () => {
+    if (isInWishlist) {
+      await removeProductFromWishlist(productDetails?._id);
+    } else {
+      await addProductToWishlist(productDetails?._id);
+    }
+    fetchWishlist();
+    checkIfInWishlist();
+  };
+
+  const handleCartClick = async () => {
+    if (isInCart) {
+      await removeProduct(productDetails?._id);
+    } else {
+      await addProduct(productDetails?._id, 1);
+    }
+    fetchCart();
+    checkIfInCart();
+  };
+
+  useEffect(() => {
+    checkIfInWishlist();
+  }, [wishlist]);
+
+  useEffect(() => {
+    checkIfInCart();
+  }, [cart]);
 
   const getRecentlyVisited = async () => {
     if (!user) {
@@ -248,17 +251,99 @@ const ProductDetails = ({ params }) => {
                 {productDetails?.title}
               </h1>
               <h5 className="text-sm md:text-base font-semibold flex flex-col gap-1">
-                ${formatNumberWithCommas(productDetails?.price)}{" "}
+                ₹ {formatNumberWithCommas(productDetails?.price)}{" "}
                 <span className="font-light text-xs">Prices include GST</span>
               </h5>
             </div>
+            <Separator />
+
+            {/* Options */}
+            <div className=" flex flex-col gap-3 justify-center items-start">
+              <div className=" flex flex-col gap-5 justify-center items-start">
+                <div className="flex flex-col gap-3 ">
+                  <h1 className="font-bold text-xl md:text-2xl">Options</h1>
+                  <p className="font-light text-sm flex gap-3 items-center">
+                    {productDetails?.color?.name.toUpperCase()}
+                    <span
+                      className="rounded-full w-3 h-3 shadow-md"
+                      style={{
+                        backgroundColor: productDetails?.color?.code,
+                        borderColor: invertColor(
+                          productDetails?.color?.code || "#ffffff"
+                        ),
+                        boxShadow: `0 0 2px ${invertColor(
+                          productDetails?.color?.code || "#ffffff"
+                        )}`,
+                      }}
+                    ></span>
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 ">
+                  <h1 className="font-bold text-xl md:text-xl">
+                    Available Sizes For{" "}
+                    {productDetails?.color?.name.toUpperCase()} Color
+                  </h1>
+
+                  <div className="color-select overflow-x-auto w-full flex gap-4 md:gap-6 px-1">
+                    {filteredSizes?.length &&
+                      filteredSizes?.map((duplicateProduct) => (
+                        <div
+                          key={duplicateProduct?._id}
+                          className="flex flex-col gap-1 cursor-pointer"
+                          onClick={() => {
+                            router.replace(`/product/${duplicateProduct?._id}`);
+                          }}
+                        >
+                          <p
+                            // onClick={() => {
+                            //   setsSelectedSize(duplicateProduct?._id);
+                            // }}
+                            className={cn(
+                              clsx(
+                                "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
+                                {
+                                  "border-2 border-black hover:opacity-100 cursor-default":
+                                    productDetails?._id ===
+                                    duplicateProduct?._id,
+                                }
+                              )
+                            )}
+                          >
+                            {productDetails?.size?.name}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
 
             {/* Color choice */}
             <div className="flex flex-col gap-4 md:gap-6">
-              <div>
-                <h2 className="font-bold text-xl md:text-2xl">Color</h2>
-                <p className="font-light text-sm">
+              <div className=" flex flex-col gap-3 justify-center items-start">
+                <h2 className="font-bold text-xl md:text-2xl">
+                  {duplicateProductDetails.length > 0
+                    ? "Other Available Colors:"
+                    : "No Other Colors Available"}
+                </h2>
+
+                <p className="font-light text-sm flex gap-3 items-center">
                   {productDetails?.color?.name.toUpperCase()}
+                  <span
+                    className="rounded-full w-3 h-3 shadow-md"
+                    style={{
+                      backgroundColor: productDetails?.color?.code,
+                      borderColor: invertColor(
+                        productDetails?.color?.code || "#ffffff"
+                      ),
+                      boxShadow: `0 0 2px ${invertColor(
+                        productDetails?.color?.code || "#ffffff"
+                      )}`,
+                    }}
+                  ></span>
                 </p>
               </div>
 
@@ -281,51 +366,88 @@ const ProductDetails = ({ params }) => {
                         width={200}
                         height={80}
                         className={clsx(
-                          " max-w-24 h-20 hover:opacity-80 color-select-images",
+                          " max-w-24 h-20  hover:opacity-100 color-select-images",
                           {
-                            "border-2 border-black rounded-md hover:opacity-100 cursor-default":
+                            "border-2 border-black rounded-md hover:opacity-100 cursor-default opacity-100":
                               duplicateProduct?._id === productDetails?._id,
+                          },
+                          {
+                            "opacity-70":
+                              duplicateProduct?._id !== productDetails?._id,
                           }
                         )}
                         quality={75} // you can also specify the quality of the image
                       />
-                      <span className="text-xs md:text-sm font-light text-center hover:opacity-80">
+
+                      <p className="text-xs md:text-sm font-light text-center hover:opacity-80 flex gap-3 items-center justify-center">
                         {duplicateProduct?.color?.name.toUpperCase()}
-                      </span>
+                        <span
+                          className="rounded-full w-3 h-3 shadow-md"
+                          style={{
+                            backgroundColor: duplicateProduct?.color?.code,
+                            borderColor: invertColor(
+                              duplicateProduct?.color?.code || "#ffffff"
+                            ),
+                            boxShadow: `0 0 2px ${invertColor(
+                              duplicateProduct?.color?.code || "#ffffff"
+                            )}`,
+                          }}
+                        ></span>
+                      </p>
                     </div>
                   ))}
               </div>
             </div>
-            
+
             <Separator />
 
             {/* Offers */}
             {productDetails?.offers && <span>{productDetails?.offers}</span>}
 
             {/* Size selection */}
-            <div className="flex flex-col gap-4 md:gap-5 ">
-              <h2 className="font-bold text-xl md:text-2xl">
-                Size {productDetails?.size?.name}{" "}
-              </h2>
-              <div className="overflow-x-auto w-full flex gap-4 md:gap-6 py-2 px-1">
-                <p
-                  // onClick={() => {
-                  //   setsSelectedSize(duplicateProduct?._id);
-                  // }}
-                  className={cn(
-                    clsx(
-                      "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
-                      {
-                        "border-2 border-black hover:opacity-100 cursor-default":
-                          productDetails?.size?._id,
-                      }
-                    )
-                  )}
-                >
-                  {productDetails?.size?.name}
+
+            <div className="flex flex-col gap-4 md:gap-6">
+              <div className=" flex flex-col gap-3 justify-center items-start">
+                <h2 className="font-bold text-xl md:text-2xl">
+                  {" "}
+                  {duplicateProductDetails.length > 0
+                    ? "Other Available Sizes:"
+                    : "No Other Sizes Available"}
+                </h2>
+
+                <p className="font-light text-sm flex gap-3 items-center">
+                  {productDetails?.size?.name.toUpperCase()}
                 </p>
               </div>
+
+              <div className="color-select overflow-x-auto w-full flex gap-4 md:gap-6 px-1">
+                {duplicateProductDetails?.length &&
+                  duplicateProductDetails?.map((duplicateProduct) => (
+                    <div
+                      key={duplicateProduct?._id}
+                      className="flex flex-col gap-1 cursor-pointer"
+                      onClick={() => {
+                        router.replace(`/product/${duplicateProduct?._id}`);
+                      }}
+                    >
+                      <p
+                        className={cn(
+                          clsx(
+                            "h-10 p-2 border-2 rounded-md border-neutral-200 hover:opacity-80 text-center color-select-images cursor-pointer text-xs md:text-sm",
+                            {
+                              "border-2 border-black hover:opacity-100 cursor-default":
+                                productDetails?._id === duplicateProduct?._id,
+                            }
+                          )
+                        )}
+                      >
+                        {productDetails?.size?.name}
+                      </p>
+                    </div>
+                  ))}
+              </div>
             </div>
+
             <Separator />
 
             {/* Buying buttons */}
@@ -337,51 +459,60 @@ const ProductDetails = ({ params }) => {
                   </p>
                 ) : (
                   <>
-                    <Button
-                      className="w-8 h-8 md:w-10 md:h-10"
-                      onClick={() => {
-                        setSelectedStock((prev) =>
-                          productDetails?.stock > prev ? prev + 1 : prev
-                        );
-                      }}
-                    >
-                      +
-                    </Button>
-                    <input
-                      type="text"
-                      className="w-8 h-8 md:w-10 md:h-10 text-center"
-                      value={selectedStock}
-                    />
-                    <Button
-                      className="w-8 h-8 md:w-10 md:h-10"
-                      onClick={() => {
-                        setSelectedStock((prev) => (prev === 1 ? 1 : prev - 1));
-                      }}
-                    >
-                      -
-                    </Button>
+                    {!isInCart && (
+                      <>
+                        <Button
+                          className="w-8 h-8 md:w-10 md:h-10"
+                          onClick={() => {
+                            setSelectedStock((prev) =>
+                              productDetails?.stock > prev ? prev + 1 : prev
+                            );
+                          }}
+                        >
+                          +
+                        </Button>
+                        <input
+                          type="text"
+                          className="w-8 h-8 md:w-10 md:h-10 text-center"
+                          value={selectedStock}
+                          readOnly
+                        />
+                        <Button
+                          className="w-8 h-8 md:w-10 md:h-10"
+                          onClick={() => {
+                            setSelectedStock((prev) =>
+                              prev === 1 ? 1 : prev - 1
+                            );
+                          }}
+                        >
+                          -
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
               <div className="col-span-2 flex flex-col gap-2 md:gap-4 p-3 pl-0">
-                {productDetails?.stock > 0 && <Button>Add To Cart</Button>}
-                {isPresentOnWishList ? (
+                {productDetails?.stock > 0 && (
+                  <Button onClick={handleCartClick} disabled={isInCart}>
+                    {!isInCart ? <> Add To Cart</> : <> Go to cart</>}
+                  </Button>
+                )}
+                {isInWishlist ? (
                   <Button
                     variant={"outline"}
-                    onClick={removeFromWishlistHandler}
-                    disabled={buttonLoadingState}
+                    onClick={handleWishlistClick}
+                    disabled={wishlistLoading}
                   >
-                    {buttonLoadingState
-                      ? "Removing..."
-                      : "Remove From Wishlist"}
+                    {wishlistLoading ? "Removing..." : "Remove From Wishlist"}
                   </Button>
                 ) : (
                   <Button
                     variant={"outline"}
-                    onClick={addToWishlistHandler}
-                    disabled={buttonLoadingState}
+                    onClick={handleWishlistClick}
+                    disabled={wishlistLoading}
                   >
-                    {buttonLoadingState ? "Adding..." : "Add To Wishlist"}
+                    {wishlistLoading ? "Adding..." : "Add To Wishlist"}
                   </Button>
                 )}
               </div>
@@ -467,13 +598,13 @@ const ProductDetails = ({ params }) => {
             </div>
           )}
 
-        {/* You may also like */}
+        {/* Recently Visited */}
         <div className=" flex flex-col gap-1">
           <h1 className=" pl-9 text-2xl font-bold">Recently Visited</h1>
           <Slider data={recentProducts} />
         </div>
 
-        {/* Recently Visited */}
+        {/* You may also like section */}
       </div>
     </>
   );
