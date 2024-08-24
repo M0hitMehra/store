@@ -77,7 +77,7 @@ const DashboardSidebar = () => {
       </div>
 
       {/* Top bar for small devices */}
-      <div className="fixed md:hidden block py-2 px-4 bg-white shadow-lg z-30 w-full overflow-x-auto dashboard-top-bar">
+      <div className="fixed md:hidden block py-2 mt-20 px-4 bg-white shadow-lg z-30 w-full overflow-x-auto dashboard-top-bar">
         <ul className="flex gap-4">
           {links.map(({ href, label }) => (
             <li key={href} className="flex-shrink-0">
