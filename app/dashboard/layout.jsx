@@ -13,7 +13,7 @@ const DashboardLayout = ({ children }) => {
   return (
     <div className=" h-[88vh] w-[100vw] flex">
       <DashboardSidebar />
-      <div className=" w-full h-full overflow-y-auto lg:p-8 p-2 ">{children}</div>
+      <div className=" w-full h-full overflow-y-auto  ">{children}</div>
     </div>
   );
 };
