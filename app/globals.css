@@ -215,7 +215,7 @@ body {
 }
 
 .form-container {
- 
+
   background-color: #7b2cbf;
   display: flex;
   justify-content: center;
@@ -224,7 +224,7 @@ body {
 
 .upload-files-container {
   background-color: #f7fff7;
-  
+
   padding: 30px 60px;
   border-radius: 40px;
   display: flex;
@@ -239,7 +239,7 @@ body {
   border-radius: 40px;
   margin: 10px 0 15px;
   padding: 30px 50px;
-   text-align: center;
+  text-align: center;
 }
 
 .drag-file-area .upload-icon {
@@ -283,8 +283,13 @@ body {
 }
 
 @keyframes fadeIn {
-  0% {opacity: 0;}
-  100% {opacity: 1;}
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .cannot-upload-message span,
@@ -301,7 +306,7 @@ body {
   color: #f7fff7;
   background-color: #7b2cbf;
   transition: all 1s;
-   position: relative;
+  position: relative;
   display: none;
   flex-direction: row;
   justify-content: space-between;
@@ -357,7 +362,7 @@ body {
 }
 
 
- /* Add this CSS to your global styles or component-specific styles */
+/* Add this CSS to your global styles or component-specific styles */
 .imageContainer {
   position: relative;
   overflow: hidden;
