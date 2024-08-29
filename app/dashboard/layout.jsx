@@ -11,9 +11,9 @@ const DashboardLayout = ({ children }) => {
     return <Loader />;
   }
   return (
-    <div className="  h-screen w-[100vw] flex">
+    <div className="  h-full w-full flex">
       <DashboardSidebar />
-      <div className=" w-full h-full overflow-y-auto lg:pt-0 pb-2 pt-28 ">{children}</div>
+      <div className=" w-full h-full overflow-y-auto   p-10 ">{children}</div>
     </div>
   );
 };

@@ -277,7 +277,7 @@ const UserProfile = () => {
   return (
     <>
       {user ? (
-        <div className="p-2 py-5 md:px-20 md:py-10 flex justify-center items-start  w-full  h-full">
+        <div className="  flex justify-center items-start  w-full  h-full">
           <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center w-full h-full">
             {/* give background blur */}
             <div className="col-span-1 relative md:col-span-2 flex flex-col gap-6 justify-center items-center p-4 md:p-8 rounded-lg shadow-black shadow-sm  w-full h-full">
