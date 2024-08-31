@@ -205,7 +205,7 @@ const ProductDetails = ({ params }) => {
 
   return (
     <>
-      <div className="flex flex-col justify-center items-center p-5 gap-10 xl:p-0 pt-20 ">
+      <div className="flex flex-col justify-center items-center p-5 gap-10    ">
         <div className="grid grid-cols-1 md:grid-cols-9 w-full border-b">
           <div
             className="col-span-1 md:col-span-5 overflow-y-auto md:h-screen "
@@ -525,53 +525,46 @@ const ProductDetails = ({ params }) => {
           productDetails?.otherDetails?.productDetails?.description &&
           productDetails?.otherDetails?.manufacturAddress?.description &&
           productDetails?.otherDetails?.countoryOrigin?.description && (
-            <div className=" p-8 w-full">
-              <div className=" flex flex-col justify-center items-center  rounded-md p-5  bg-gray-200 w-full gap-10">
-                {/* {productDetails?.otherDetails?.productStory?.title} */}
+            <div className="p-4 sm:p-8 w-full">
+              <div className="flex flex-col justify-center items-center rounded-md p-4 sm:p-5 bg-gray-200 w-full gap-6 sm:gap-10">
                 {productDetails?.otherDetails?.productStory && (
-                  <div className=" w-full flex flex-col justify-center items-start gap-3">
-                    <h1 className=" text-2xl font-bold ">
-                      {" "}
+                  <div className="w-full flex flex-col justify-center items-start gap-2 sm:gap-3">
+                    <h1 className="text-lg sm:text-2xl font-bold">
                       {productDetails?.otherDetails?.productStory?.title}
                     </h1>
-                    <p className=" text-base font-light text-neutral-800">
-                      {" "}
+                    <p className="text-sm sm:text-base font-light text-neutral-800">
                       {productDetails?.otherDetails?.productStory?.description}
                     </p>
                   </div>
                 )}
-                <div className=" grid grid-cols-6 justify-center items-start w-full">
+
+                <div className="grid grid-cols-1 sm:grid-cols-6 justify-center items-start w-full gap-4">
                   {productDetails?.otherDetails?.productDetails && (
-                    <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
-                      <h1 className=" text-2xl font-bold ">
-                        {" "}
+                    <div className="sm:col-span-3 flex flex-col justify-center items-start gap-2 sm:gap-3">
+                      <h1 className="text-lg sm:text-2xl font-bold">
                         {productDetails?.otherDetails?.productDetails?.title}
                       </h1>
-                      <ul className=" list-disc flex flex-col justify-center items-start pl-4 gap-2">
-                        {productDetails?.otherDetails?.productDetails
-                          ?.description &&
-                          productDetails?.otherDetails?.productDetails?.description?.map(
-                            (detail) => (
-                              <li
-                                key={detail}
-                                className="text-base font-light text-neutral-800"
-                              >
-                                {detail}
-                              </li>
-                            )
-                          )}
+                      <ul className="list-disc flex flex-col justify-center items-start pl-4 gap-1 sm:gap-2">
+                        {productDetails?.otherDetails?.productDetails?.description?.map(
+                          (detail) => (
+                            <li
+                              key={detail}
+                              className="text-sm sm:text-base font-light text-neutral-800"
+                            >
+                              {detail}
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                   )}
 
                   {productDetails?.otherDetails?.manufacturAddress && (
-                    <div className=" col-span-3 flex flex-col justify-center items-start gap-3">
-                      <h1 className=" text-2xl font-bold ">
-                        {" "}
+                    <div className="sm:col-span-3 flex flex-col justify-center items-start gap-2 sm:gap-3">
+                      <h1 className="text-lg sm:text-2xl font-bold">
                         {productDetails?.otherDetails?.manufacturAddress?.title}
                       </h1>
-                      <p className="text-base font-light text-neutral-800">
-                        {" "}
+                      <p className="text-sm sm:text-base font-light text-neutral-800">
                         {
                           productDetails?.otherDetails?.manufacturAddress
                             ?.description
@@ -580,13 +573,13 @@ const ProductDetails = ({ params }) => {
                     </div>
                   )}
                 </div>
+
                 {productDetails?.otherDetails?.countoryOrigin && (
-                  <div className=" w-full flex flex-col justify-center items-start gap-3">
-                    <h1 className=" text-2xl font-bold ">
-                      {" "}
+                  <div className="w-full flex flex-col justify-center items-start gap-2 sm:gap-3">
+                    <h1 className="text-lg sm:text-2xl font-bold">
                       {productDetails?.otherDetails?.countoryOrigin?.title}
                     </h1>
-                    <p className="text-base font-light text-neutral-800">
+                    <p className="text-sm sm:text-base font-light text-neutral-800">
                       {
                         productDetails?.otherDetails?.countoryOrigin
                           ?.description

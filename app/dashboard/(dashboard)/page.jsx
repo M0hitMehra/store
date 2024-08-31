@@ -279,15 +279,15 @@ const UserProfile = () => {
       {user ? (
         <div className="  flex justify-center items-start  w-full  h-full">
           <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center w-full h-full">
-            {/* give background blur */}
-            <div className="col-span-1 relative md:col-span-2 flex flex-col gap-6 justify-center items-center p-4 md:p-8 rounded-lg shadow-black shadow-sm  w-full h-full">
-              <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
+            <div className="col-span-1 relative flex flex-col gap-6 justify-center items-center p-4 sm:p-6 md:col-span-2 lg:p-8 rounded-lg shadow-black shadow-sm w-full h-full">
+            <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
                 {" "}
               </div>
               <div className="relative rounded-full">
                 <img
                   src={user?.avatar?.url}
-                  className="rounded-full h-40 w-40 md:h-56 md:w-56 hover:opacity-95 shadow-md hover:scale-105 transition-all"
+                  className="rounded-full h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 lg:h-56 lg:w-56 hover:opacity-95 shadow-md hover:scale-105 transition-all"
+                  alt="User Avatar"
                 />
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
@@ -339,10 +339,8 @@ const UserProfile = () => {
                               <img
                                 src={selectedImage}
                                 alt="Selected Preview"
-                                className="w-full   rounded-md"
-                                style={{
-                                  height: "300px",
-                                }}
+                                className="w-full rounded-md"
+                                style={{ height: "auto", maxHeight: "300px" }}
                               />
                             </div>
                           )}
@@ -378,7 +376,7 @@ const UserProfile = () => {
                     <DialogTitle>Update Password</DialogTitle>
                     <DialogDescription>
                       <form
-                        className=" flex justify-center items-center flex-col p-5 gap-8"
+                        className="flex justify-center items-center flex-col p-5 gap-8"
                         onSubmit={handleSubmitupdatePassword(
                           updatePasswordHandler
                         )}
@@ -440,9 +438,7 @@ const UserProfile = () => {
 
               <Button
                 className="w-full shadow-md z-20 bg-blue-500"
-                onClick={() => {
-                  forgetPasswordHandler(user?.email);
-                }}
+                onClick={() => forgetPasswordHandler(user?.email)}
               >
                 Forget password
               </Button>
@@ -455,7 +451,7 @@ const UserProfile = () => {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>
-                        Are you sure you want to delete your account
+                        Are you sure you want to delete your account?
                       </DialogTitle>
                       <DialogDescription>
                         This action cannot be undone. This will permanently
@@ -481,8 +477,6 @@ const UserProfile = () => {
                 </Dialog>
               </Button>
             </div>
-
-            {/* give background blur */}
 
             <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-2 md:p-8   rounded-lg shadow-black shadow-sm  h-full w-full">
               <div className=" absolute backdrop-blur-sm top-0 left-0 blur-md bg-white/30 h-full w-full rounded-lg">
@@ -599,7 +593,7 @@ const UserProfile = () => {
                   </div>
                 </form>
               ) : (
-                <div className="w-full p-1 flex flex-col gap-6 z-20">
+                <div className="w-full p-2 sm:p-4 flex flex-col gap-4 sm:gap-6 z-20">
                   {[
                     { label: "First Name", value: user?.firstName },
                     { label: "Last Name", value: user?.lastName },
@@ -644,10 +638,13 @@ const UserProfile = () => {
                     <div
                       key={idx}
                       className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center"
-                      // className="flex items-center gap-10 flex-wrap"
                     >
-                      <h1 className="lg:text-2xl font-bold text-gray-700">{label}:</h1>
-                      <p>{checkDataIsEmpty(value)}</p>
+                      <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-700">
+                        {label}:
+                      </h1>
+                      <p className="text-base sm:text-lg">
+                        {checkDataIsEmpty(value)}
+                      </p>
                     </div>
                   ))}
                 </div>
