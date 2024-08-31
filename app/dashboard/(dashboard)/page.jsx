@@ -277,17 +277,17 @@ const UserProfile = () => {
   return (
     <>
       {user ? (
-        <div className="px-5 py-5 md:px-20 md:py-10 flex justify-center items-start fixed -mt-10  h-full">
-          <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center ">
-            {/* give background blur */}
-            <div className="col-span-1 relative md:col-span-2 flex flex-col gap-6 justify-center items-center p-4 md:p-8     rounded-lg shadow-black shadow-sm ">
-              <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
+        <div className="  flex justify-center items-start  w-full  h-full">
+          <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center w-full h-full">
+            <div className="col-span-1 relative flex flex-col gap-6 justify-center items-center p-4 sm:p-6 md:col-span-2 lg:p-8 rounded-lg shadow-black shadow-sm w-full h-full">
+            <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
                 {" "}
               </div>
               <div className="relative rounded-full">
                 <img
                   src={user?.avatar?.url}
-                  className="rounded-full h-40 w-40 md:h-56 md:w-56 hover:opacity-95 shadow-md hover:scale-105 transition-all"
+                  className="rounded-full h-32 w-32 sm:h-40 sm:w-40 md:h-48 md:w-48 lg:h-56 lg:w-56 hover:opacity-95 shadow-md hover:scale-105 transition-all"
+                  alt="User Avatar"
                 />
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
@@ -339,10 +339,8 @@ const UserProfile = () => {
                               <img
                                 src={selectedImage}
                                 alt="Selected Preview"
-                                className="w-full   rounded-md"
-                                style={{
-                                  height: "300px",
-                                }}
+                                className="w-full rounded-md"
+                                style={{ height: "auto", maxHeight: "300px" }}
                               />
                             </div>
                           )}
@@ -378,7 +376,7 @@ const UserProfile = () => {
                     <DialogTitle>Update Password</DialogTitle>
                     <DialogDescription>
                       <form
-                        className=" flex justify-center items-center flex-col p-5 gap-8"
+                        className="flex justify-center items-center flex-col p-5 gap-8"
                         onSubmit={handleSubmitupdatePassword(
                           updatePasswordHandler
                         )}
@@ -440,9 +438,7 @@ const UserProfile = () => {
 
               <Button
                 className="w-full shadow-md z-20 bg-blue-500"
-                onClick={() => {
-                  forgetPasswordHandler(user?.email);
-                }}
+                onClick={() => forgetPasswordHandler(user?.email)}
               >
                 Forget password
               </Button>
@@ -455,7 +451,7 @@ const UserProfile = () => {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>
-                        Are you sure you want to delete your account
+                        Are you sure you want to delete your account?
                       </DialogTitle>
                       <DialogDescription>
                         This action cannot be undone. This will permanently
@@ -482,9 +478,7 @@ const UserProfile = () => {
               </Button>
             </div>
 
-            {/* give background blur */}
-
-            <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-4 md:p-8   rounded-lg shadow-black shadow-sm  h-full">
+            <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-2 md:p-8   rounded-lg shadow-black shadow-sm  h-full w-full">
               <div className=" absolute backdrop-blur-sm top-0 left-0 blur-md bg-white/30 h-full w-full rounded-lg">
                 {" "}
               </div>
@@ -599,71 +593,60 @@ const UserProfile = () => {
                   </div>
                 </form>
               ) : (
-                <div className=" z-20 w-full flex flex-col gap-6 justify-center p-4">
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <TypographyH3>First Name:</TypographyH3>
-                    <TypographyP>
-                      {checkDataIsEmpty(user?.firstName)}
-                    </TypographyP>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <TypographyH3>Last Name:</TypographyH3>
-                    <TypographyP>
-                      {checkDataIsEmpty(user?.lastName)}
-                    </TypographyP>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <TypographyH3>Phone Number:</TypographyH3>
-                    <TypographyP>{checkDataIsEmpty(user?.phone)}</TypographyP>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <TypographyH3>Email:</TypographyH3>
-                    <TypographyP>
-                      {user?.email}
-                      {user?.verified === false ? (
-                        <Dialog>
-                          <DialogTrigger>
-                            <span
-                              className={`cursor-pointer ml-5 ${
-                                user?.verified
-                                  ? "text-green-400"
-                                  : "text-red-400"
-                              }`}
-                            >
-                              {user?.verified ? "" : "Not Verified"}
+                <div className="w-full p-2 sm:p-4 flex flex-col gap-4 sm:gap-6 z-20">
+                  {[
+                    { label: "First Name", value: user?.firstName },
+                    { label: "Last Name", value: user?.lastName },
+                    { label: "Phone Number", value: user?.phone },
+                    {
+                      label: "Email",
+                      value: (
+                        <>
+                          {user?.email}
+                          {user?.verified === false ? (
+                            <Dialog>
+                              <DialogTrigger>
+                                <span className="cursor-pointer ml-2 text-sm text-red-400">
+                                  Not Verified
+                                </span>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Verify Your Email</DialogTitle>
+                                  <DialogDescription>
+                                    <InputOTPForm />
+                                  </DialogDescription>
+                                </DialogHeader>
+                              </DialogContent>
+                            </Dialog>
+                          ) : (
+                            <span className="cursor-pointer ml-2 text-sm text-green-400">
+                              Verified
                             </span>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>
-                                Enter OTP sent to your email address for
-                                verification
-                              </DialogTitle>
-                              <DialogDescription>
-                                <InputOTPForm />
-                              </DialogDescription>
-                            </DialogHeader>
-                          </DialogContent>
-                        </Dialog>
-                      ) : (
-                        <span className="cursor-pointer ml-5 font-semibold text-green-400">
-                          Verified
-                        </span>
-                      )}
-                    </TypographyP>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <TypographyH3>Address:</TypographyH3>
-                    <TypographyP>{checkDataIsEmpty(user?.address)}</TypographyP>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 items-center">
-                    <TypographyH3>Joined on:</TypographyH3>
-                    <TypographyP>
-                      {new Date(
+                          )}
+                        </>
+                      ),
+                    },
+                    { label: "Address", value: user?.address },
+                    {
+                      label: "Joined on",
+                      value: new Date(
                         checkDataIsEmpty(user?.createdAt)
-                      ).toLocaleDateString()}
-                    </TypographyP>
-                  </div>
+                      ).toLocaleDateString(),
+                    },
+                  ].map(({ label, value }, idx) => (
+                    <div
+                      key={idx}
+                      className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center"
+                    >
+                      <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-700">
+                        {label}:
+                      </h1>
+                      <p className="text-base sm:text-lg">
+                        {checkDataIsEmpty(value)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

@@ -44,7 +44,7 @@ export default function Home() {
   return (
     <div className=" flex flex-col gap-5">
       {productData && productData?.length > 0 ? (
-        <div className="xl:p-0 pt-20">
+        <div className=" ">
           {/* Promotional Banner */}
           <Banners />
 

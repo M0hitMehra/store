@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Heart, Search, ShoppingCart, User } from "lucide-react";
 import clsx from "clsx";
@@ -12,8 +12,10 @@ import UserDropDown from "./userDropDown";
 import MobileNavbar from "./mobile-navbar";
 
 const Navbar = () => {
-  const router = useRouter();
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
   const [hoveredLink, setHoveredLink] = useState("");
+  const router = useRouter();
 
   //   Navbar Category Links
   const links = [
@@ -652,19 +654,36 @@ const Navbar = () => {
     },
   ];
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollPos = window.pageYOffset;
+      setIsVisible(scrollPosition > currentScrollPos || currentScrollPos < 10);
+      setScrollPosition(currentScrollPos);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [scrollPosition]);
+
   return (
-    <section className="  sticky top-0 z-50 ">
-      {/* Desktop */}
+    <section
+      className={clsx("w-screen top-0 z-50 transition-transform duration-300 fixed", {
+        "-translate-y-full": !isVisible,
+        "translate-y-0": isVisible,
+      })}
+    >
       <nav className="hidden xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900">
-        <div className=" col-span-8 flex gap-10 justify-start items-center">
+        <div className="col-span-8 flex gap-10 justify-start items-center">
           {/* Logo */}
           <Image
             src="/puma-logo.svg"
             alt="Brand Logo"
             className="h-12 w-12 text-neutral-200 cursor-pointer"
             onClick={() => router.push("/")}
-            width={48} // Specify the width of the image
-            height={48} // Specify the height of the image
+            width={48}
+            height={48}
           />
 
           {/* Categories */}
@@ -698,12 +717,12 @@ const Navbar = () => {
           </div>
         </div>
 
-        <div className=" col-span-1"></div>
-        <div className=" col-span-3 flex  gap-6 justify-end items-center ">
+        <div className="col-span-1"></div>
+        <div className="col-span-3 flex gap-6 justify-end items-center">
           {/* search */}
           <Button
             variant={"ghost"}
-            className=" text-white  xl:hidden  flex gap-3 justify-between rounded-lg border-[1px] border-gray-500 hover:border-gray-400 shadow-xs shadow-white px-6 hover:bg-neutral-900"
+            className="text-white xl:hidden flex gap-3 justify-between rounded-lg border-[1px] border-gray-500 hover:border-gray-400 shadow-xs shadow-white px-6 hover:bg-neutral-900"
           >
             <Search color="white" width={18} height={18} />
             <p className="">Search</p>
@@ -713,20 +732,20 @@ const Navbar = () => {
             color="white"
             width={40}
             height={40}
-            className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer  text-white  hidden xl:block"
+            className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer text-white hidden xl:block"
           />
 
           <Heart
             color="white"
             width={40}
             height={40}
-            className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
           />
           <ShoppingCart
             color="white"
             width={40}
             height={40}
-            className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
           />
 
           <UserDropDown />

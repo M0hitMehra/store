@@ -41,7 +41,7 @@ const RecentlyVisited = () => {
       {recentProducts ? (
         <>
           {recentProducts && recentProducts?.length > 0 ? (
-            <div className="flex flex-wrap gap-20 px-20 py-10 justify-center items-start">
+            <div className="flex flex-wrap gap-20  justify-center items-start">
               {recentProducts?.map((product) => (
                 <ProductCard
                   key={product?._id}
