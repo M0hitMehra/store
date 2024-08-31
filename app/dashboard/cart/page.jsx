@@ -8,8 +8,10 @@ import Loader from "@/components/loader";
 import Link from "next/link";
 import Image from "next/image";
 import { Trash } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-const CartItem = ({ item, setApiCaller }) => {
+const CartItem = ({ item }) => {
+  const route = useRouter();
   const updateProductQuantity = useCartStore(
     (state) => state?.updateProductQuantity
   );
@@ -18,17 +20,20 @@ const CartItem = ({ item, setApiCaller }) => {
   const handleQuantityChange = (event) => {
     const quantity = parseInt(event.target.value, 10);
     updateProductQuantity(item?.product?._id, quantity);
-    setApiCaller((prev) => !prev);
   };
 
   const handleRemove = () => {
     removeProduct(item?.product?._id);
-    setApiCaller((prev) => !prev);
   };
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-b gap-4">
-      <div className="flex items-center gap-4">
+      <div
+        className="flex items-center gap-4 cursor-pointer"
+        onClick={() => {
+          route.push(`/product/${item?.product?._id}`);
+        }}
+      >
         <Image
           src={item?.product?.images[0]?.url || "/placeholder.png"}
           alt={item?.product?.title}
@@ -67,22 +72,21 @@ const Cart = () => {
     fetchCart,
     loading: cartLoading,
   } = useCartStore((state) => state);
-  const [apiCaller, setApiCaller] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchCart();
     }
-  }, [user, fetchCart, apiCaller]);
+  }, [user, fetchCart, cart?.length]);
 
-  if (loading|| cartLoading) {
+  if (loading || cartLoading) {
     return (
       <div>
         <Loader />
       </div>
     );
   }
-
+  console.log(cart);
   return (
     <div className="w-full h-full">
       <div className="container mx-auto p-4 w-full h-full">
@@ -92,11 +96,7 @@ const Cart = () => {
         {cart?.length > 0 ? (
           <div className="space-y-4">
             {cart?.map((item) => (
-              <CartItem
-                key={item?.product?._id}
-                item={item}
-                setApiCaller={setApiCaller}
-              />
+              <CartItem key={item?.product?._id} item={item} />
             ))}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
               <Link href="/">

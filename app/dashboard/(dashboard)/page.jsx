@@ -279,7 +279,7 @@ const UserProfile = () => {
       {user ? (
         <div className="  flex justify-center items-start  w-full  h-full">
           <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center w-full h-full">
-            <div className="col-span-1 relative flex flex-col gap-6 justify-center items-center p-4 sm:p-6 md:col-span-2 lg:p-8 rounded-lg shadow-black shadow-sm w-full h-full">
+            <div className="col-span-1 relative flex flex-col gap-6 justify-center items-center md:col-span-2  p-2 px-4 rounded-lg shadow-black shadow-sm w-full h-full">
             <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
                 {" "}
               </div>
