@@ -379,3 +379,27 @@ body {
   cursor: zoom-in;
   transform: scale(var(--zoom, 2));
 }
+
+@keyframes scroll-view {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.scroll-appear-animations {
+  animation: scroll-view 0.5s linear forwards;
+  opacity: 0; /* Start hidden */
+  transform: scale(0.5); /* Start scaled down */
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.scroll-visible {
+  opacity: 1;
+  transform: scale(1);
+}
