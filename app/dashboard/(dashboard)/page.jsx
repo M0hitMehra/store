@@ -32,9 +32,19 @@ import { Label } from "@/components/ui/label";
 const ProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  phone: z.string().optional(),
+  phone: z
+    .string()
+    .optional()
+    .refine((value) => !value || /^\d{10}$/.test(value), {
+      message: "Phone number must be 10 digits",
+    }),
   email: z.string().email("Invalid email address"),
-  address: z.string().optional(),
+  address: z.string().min(5, "Address must be at least 5 characters long"),
+  shippingAddress: z.string().optional(),
+  billingAddress: z.string().optional(),
+  dateOfBirth: z.string().refine((value) => new Date(value) < new Date(), {
+    message: "Date of birth must be in the past",
+  }),
 });
 
 const UpdatePasswordSchema = z.object({
@@ -54,10 +64,8 @@ const UserProfile = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isDirty },
+    formState: { errors },
     reset,
-    watch,
-    control,
   } = useForm({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
@@ -66,6 +74,11 @@ const UserProfile = () => {
       phone: user?.phone,
       email: user?.email,
       address: user?.address,
+      shippingAddress: user?.shippingAddress,
+      billingAddress: user?.billingAddress,
+      dateOfBirth: user?.dateOfBirth
+        ? new Date(user.dateOfBirth).toISOString().slice(0, 10)
+        : "",
     },
   });
 
@@ -94,32 +107,39 @@ const UserProfile = () => {
   };
 
   const handleUpdateProfile = async (formData) => {
-    // Implement the logic to update the user profile
     try {
       const { data } = await axios.post(
-        `${server}/auth/user/update`,
-        formData,
+        `${server}/auth/user/update`, // Adjust the server URL if needed
+        {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          address: formData.address,
+          shippingAddress: formData.shippingAddress,
+          billingAddress: formData.billingAddress,
+          dateOfBirth: formData.dateOfBirth,
+        },
         {
           withCredentials: true,
         }
       );
+  
       if (data?.success) {
-        setUser(data?.user);
         toast({
           variant: "success",
           title: "Profile updated successfully",
         });
+        reset(); // Reset form fields after successful update
       }
-      setEditMode(false);
-      setOpen(false); // Close the dialog after submitting
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error while updating user profile",
+        title: "Error while updating profile",
+        description: error?.response?.data?.message || "Something went wrong",
       });
-      setOpen(false); // Close the dialog after submitting
     }
   };
+  
 
   const updatePasswordHandler = async (formData) => {
     try {
@@ -272,15 +292,14 @@ const UserProfile = () => {
 
   const checkDataIsEmpty = (data) => (data ? data : "N/A");
 
-  const watchedFields = watch();
-
+ 
   return (
     <>
       {user ? (
         <div className="  flex justify-center items-start  w-full  h-full">
           <div className="p-4  grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-8 justify-center items-center w-full h-full">
             <div className="col-span-1 relative flex flex-col gap-6 justify-center items-center md:col-span-2  p-2 px-4 rounded-lg shadow-black shadow-sm w-full h-full">
-            <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
+              <div className=" absolute backdrop-blur-sm blur-md bg-white/30 h-full w-full ">
                 {" "}
               </div>
               <div className="relative rounded-full">
@@ -478,177 +497,107 @@ const UserProfile = () => {
               </Button>
             </div>
 
-            <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-2 md:p-8   rounded-lg shadow-black shadow-sm  h-full w-full">
-              <div className=" absolute backdrop-blur-sm top-0 left-0 blur-md bg-white/30 h-full w-full rounded-lg">
-                {" "}
+            <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-2     rounded-lg shadow-black shadow-sm  h-full w-full md:overflow-auto">
+              <div className="container mx-auto p-4 flex flex-col gap-5">
+                <TypographyH3>Your Profile</TypographyH3>
+
+                <form onSubmit={handleSubmit(handleUpdateProfile)} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* First Name */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="firstName">First Name</Label>
+          <Input
+            id="firstName"
+            {...register("firstName", { required: true })}
+          />
+          {errors.firstName && (
+            <span className="text-sm text-red-500">
+              *{errors.firstName.message}
+            </span>
+          )}
+        </div>
+
+        {/* Last Name */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input id="lastName" {...register("lastName", { required: true })} />
+          {errors.lastName && (
+            <span className="text-sm text-red-500">
+              *{errors.lastName.message}
+            </span>
+          )}
+        </div>
+
+        {/* Phone */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="phone">Phone</Label>
+          <Input id="phone" {...register("phone")} />
+          {errors.phone && (
+            <span className="text-sm text-red-500">
+              *{errors.phone.message}
+            </span>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" {...register("email", { required: true })} />
+          {errors.email && (
+            <span className="text-sm text-red-500">
+              *{errors.email.message}
+            </span>
+          )}
+        </div>
+
+        {/* Address */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="address">Address</Label>
+          <Input id="address" {...register("address", { required: true })} />
+          {errors.address && (
+            <span className="text-sm text-red-500">
+              *{errors.address.message}
+            </span>
+          )}
+        </div>
+
+        {/* Shipping Address */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="shippingAddress">Shipping Address</Label>
+          <Input id="shippingAddress" {...register("shippingAddress")} />
+          {errors.shippingAddress && (
+            <span className="text-sm text-red-500">
+              *{errors.shippingAddress.message}
+            </span>
+          )}
+        </div>
+
+        {/* Billing Address */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="billingAddress">Billing Address</Label>
+          <Input id="billingAddress" {...register("billingAddress")} />
+          {errors.billingAddress && (
+            <span className="text-sm text-red-500">
+              *{errors.billingAddress.message}
+            </span>
+          )}
+        </div>
+
+        {/* Date of Birth */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="dateOfBirth">Date of Birth</Label>
+          <Input type="date" id="dateOfBirth" {...register("dateOfBirth")} />
+          {errors.dateOfBirth && (
+            <span className="text-sm text-red-500">
+              *{errors.dateOfBirth.message}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <Button type="submit">Update Profile</Button>
+    </form>
               </div>
-              {editMode ? (
-                <form
-                  onSubmit={handleSubmit(handleUpdateProfile)}
-                  className="flex flex-col gap-6 justify-cente z-20"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor="firstName"
-                        className="text-lg font-bold mb-2 text-gray-700"
-                      >
-                        First Name
-                      </label>
-                      <input
-                        {...register("firstName")}
-                        id="firstName"
-                        className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
-                        placeholder="First Name"
-                      />
-                      {errors.firstName && (
-                        <p className="text-red-500 text-sm mt-2">
-                          {errors.firstName.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor="lastName"
-                        className="text-lg font-bold mb-2 text-gray-700"
-                      >
-                        Last Name
-                      </label>
-                      <input
-                        {...register("lastName")}
-                        id="lastName"
-                        className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
-                        placeholder="Last Name"
-                      />
-                      {errors.lastName && (
-                        <p className="text-red-500 text-sm mt-2">
-                          {errors.lastName.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor="phone"
-                        className="text-lg font-bold mb-2 text-gray-700"
-                      >
-                        Phone Number
-                      </label>
-                      <input
-                        {...register("phone")}
-                        id="phone"
-                        className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
-                        placeholder="Phone Number"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label
-                        htmlFor="email"
-                        className="text-lg font-bold mb-2 text-gray-700"
-                      >
-                        Email
-                      </label>
-                      <input
-                        {...register("email")}
-                        id="email"
-                        className="cursor-not-allowed p-3 input input-bordered w-full border border-transparent rounded-lg bg-gray-100"
-                        disabled
-                        placeholder="Email"
-                      />
-                      {errors.email && (
-                        <p className="text-red-500 text-sm mt-2">
-                          {errors.email.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="md:col-span-2 flex flex-col">
-                      <label
-                        htmlFor="address"
-                        className="text-lg font-bold mb-2 text-gray-700"
-                      >
-                        Address
-                      </label>
-                      <input
-                        {...register("address")}
-                        id="address"
-                        className="p-3 input input-bordered w-full border border-transparent rounded-lg focus:border-blue-500 focus:ring-blue-500 transition duration-150 ease-in-out shadow-sm"
-                        placeholder="Address"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-6 mt-6 justify-center">
-                    <button
-                      type="submit"
-                      disabled={!isDirty}
-                      className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 active:bg-blue-700 disabled:opacity-50 transition duration-150 ease-in-out shadow-md transform hover:scale-105"
-                    >
-                      Update Profile
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelClick}
-                      className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 active:bg-gray-800 transition duration-150 ease-in-out shadow-md transform hover:scale-105"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="w-full p-2 sm:p-4 flex flex-col gap-4 sm:gap-6 z-20">
-                  {[
-                    { label: "First Name", value: user?.firstName },
-                    { label: "Last Name", value: user?.lastName },
-                    { label: "Phone Number", value: user?.phone },
-                    {
-                      label: "Email",
-                      value: (
-                        <>
-                          {user?.email}
-                          {user?.verified === false ? (
-                            <Dialog>
-                              <DialogTrigger>
-                                <span className="cursor-pointer ml-2 text-sm text-red-400">
-                                  Not Verified
-                                </span>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Verify Your Email</DialogTitle>
-                                  <DialogDescription>
-                                    <InputOTPForm />
-                                  </DialogDescription>
-                                </DialogHeader>
-                              </DialogContent>
-                            </Dialog>
-                          ) : (
-                            <span className="cursor-pointer ml-2 text-sm text-green-400">
-                              Verified
-                            </span>
-                          )}
-                        </>
-                      ),
-                    },
-                    { label: "Address", value: user?.address },
-                    {
-                      label: "Joined on",
-                      value: new Date(
-                        checkDataIsEmpty(user?.createdAt)
-                      ).toLocaleDateString(),
-                    },
-                  ].map(({ label, value }, idx) => (
-                    <div
-                      key={idx}
-                      className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 items-center"
-                    >
-                      <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-700">
-                        {label}:
-                      </h1>
-                      <p className="text-base sm:text-lg">
-                        {checkDataIsEmpty(value)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </div>
