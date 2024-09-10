@@ -7,8 +7,8 @@ import useProtectedRoute from "@/hooks/useProtectedRoute";
 import Loader from "@/components/loader";
 import Link from "next/link";
 import Image from "next/image";
-import { Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Minus, Plus, Trash } from "lucide-react";
 
 const CartItem = ({ item }) => {
   const route = useRouter();
@@ -17,9 +17,14 @@ const CartItem = ({ item }) => {
   );
   const removeProduct = useCartStore((state) => state?.removeProduct);
 
-  const handleQuantityChange = (event) => {
-    const quantity = parseInt(event.target.value, 10);
-    updateProductQuantity(item?.product?._id, quantity);
+  const handleDecrease = () => {
+    if (item?.quantity > 1) {
+      updateProductQuantity(item?.product?._id, item?.quantity - 1);
+    }
+  };
+
+  const handleIncrease = () => {
+    updateProductQuantity(item?.product?._id, item?.quantity + 1);
   };
 
   const handleRemove = () => {
@@ -27,7 +32,7 @@ const CartItem = ({ item }) => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-b gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center items-start justify-between sm:p-4 p-1 border-b gap-4">
       <div
         className="flex items-center gap-4 cursor-pointer"
         onClick={() => {
@@ -38,7 +43,7 @@ const CartItem = ({ item }) => {
           src={item?.product?.images[0]?.url || "/placeholder.png"}
           alt={item?.product?.title}
           width={80}
-          height={80}
+          height={100}
           className="rounded-md"
         />
         <div>
@@ -46,14 +51,20 @@ const CartItem = ({ item }) => {
           <p className="text-gray-600">${item?.product?.price?.toFixed(2)}</p>
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <input
-          type="number"
-          min="1"
-          value={item?.quantity}
-          onChange={handleQuantityChange}
-          className="w-16 p-1 border rounded text-center"
-        />
+      <div className="flex items-center w-full justify-center sm:justify-end gap-4">
+        <button
+          onClick={handleDecrease}
+          className="bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+        >
+          <Minus className="w-5 h-5" />
+        </button>
+        <span className="w-10 text-center">{item?.quantity}</span>
+        <button
+          onClick={handleIncrease}
+          className="bg-gray-200 p-2 rounded-full hover:bg-gray-300"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
         <button
           onClick={handleRemove}
           className="text-red-600 hover:text-red-800"
@@ -86,11 +97,11 @@ const Cart = () => {
       </div>
     );
   }
-  console.log(cart);
+
   return (
     <div className="w-full h-full">
-      <div className="container mx-auto p-4 w-full h-full">
-        <h1 className="text-3xl font-bold mb-6">
+      <div className="container mx-auto p-1 sm:p-4 w-full h-full">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center sm:text-left">
           {user?.firstName + "'s"} Cart
         </h1>
         {cart?.length > 0 ? (
@@ -110,8 +121,8 @@ const Cart = () => {
             </div>
           </div>
         ) : (
-          <div className="text-center flex justify-center items-center h-full w-full flex-col ">
-            <div className=" flex justify-center items-center flex-col p-20 shadow-xl  border-2 rounded-bl-full   rounded-t-full ">
+          <div className="text-center flex justify-center items-center h-full w-full flex-col p-4 sm:p-20">
+            <div className="flex justify-center items-center flex-col p-10 sm:p-20 shadow-xl border-2 rounded-bl-full rounded-t-full">
               <p>Your cart is empty.</p>
               <Link href="/">
                 <p className="text-blue-600 hover:text-blue-800 mt-4 block">
@@ -125,5 +136,6 @@ const Cart = () => {
     </div>
   );
 };
+
 
 export default Cart;
