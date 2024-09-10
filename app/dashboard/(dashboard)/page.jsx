@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { InputOTPForm } from "@/components/input-otp";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -28,6 +28,7 @@ import imageCompression from "browser-image-compression";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/date-picker";
 
 const ProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -39,12 +40,23 @@ const ProfileSchema = z.object({
       message: "Phone number must be 10 digits",
     }),
   email: z.string().email("Invalid email address"),
-  address: z.string().min(5, "Address must be at least 5 characters long"),
-  shippingAddress: z.string().optional(),
-  billingAddress: z.string().optional(),
-  dateOfBirth: z.string().refine((value) => new Date(value) < new Date(), {
-    message: "Date of birth must be in the past",
-  }),
+  address: z
+    .array(
+      z.union([
+        z.string(),
+        z.object({
+          street: z.string(),
+          city: z.string(),
+          state: z.string(),
+          postalCode: z.string(),
+          country: z.string(),
+        }),
+      ])
+    )
+    .optional(),
+    dateOfBirth: z.string().refine((value) => new Date(value) < new Date(), {
+      message: "Date of birth must be in the past",
+    }),
 });
 
 const UpdatePasswordSchema = z.object({
@@ -64,8 +76,11 @@ const UserProfile = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm({
     resolver: zodResolver(ProfileSchema),
     defaultValues: {
@@ -73,13 +88,21 @@ const UserProfile = () => {
       lastName: user?.lastName,
       phone: user?.phone,
       email: user?.email,
-      address: user?.address,
-      shippingAddress: user?.shippingAddress,
-      billingAddress: user?.billingAddress,
+      address: user?.address || [
+        { street: "", city: "", state: "", postalCode: "", country: "" },
+      ],
+
       dateOfBirth: user?.dateOfBirth
         ? new Date(user.dateOfBirth).toISOString().slice(0, 10)
         : "",
+        
     },
+    
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "address", // This maps to the `address` field in the schema
   });
 
   const {
@@ -123,13 +146,13 @@ const UserProfile = () => {
           withCredentials: true,
         }
       );
-  
+
       if (data?.success) {
+        console.log(data?.user);
         toast({
           variant: "success",
           title: "Profile updated successfully",
         });
-        reset(); // Reset form fields after successful update
       }
     } catch (error) {
       toast({
@@ -139,7 +162,6 @@ const UserProfile = () => {
       });
     }
   };
-  
 
   const updatePasswordHandler = async (formData) => {
     try {
@@ -292,7 +314,6 @@ const UserProfile = () => {
 
   const checkDataIsEmpty = (data) => (data ? data : "N/A");
 
- 
   return (
     <>
       {user ? (
@@ -384,8 +405,15 @@ const UserProfile = () => {
                 Edit profile
               </Button>
 
+              <Button
+                className="w-full shadow-md z-20 bg-blue-500"
+                onClick={() => forgetPasswordHandler(user?.email)}
+              >
+                Forget password
+              </Button>
+
               <Dialog>
-                <DialogTrigger className="z-20 w-full">
+                <DialogTrigger asChild className="z-20 w-full">
                   <Button className="w-full shadow-md z-20 bg-blue-500">
                     Update password
                   </Button>
@@ -455,148 +483,214 @@ const UserProfile = () => {
                 </DialogContent>
               </Dialog>
 
-              <Button
-                className="w-full shadow-md z-20 bg-blue-500"
-                onClick={() => forgetPasswordHandler(user?.email)}
-              >
-                Forget password
-              </Button>
-              <Button
-                variant="destructive"
-                className="w-full z-20 shadow-md bg-red-500"
-              >
-                <Dialog>
-                  <DialogTrigger>Delete my profile</DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>
-                        Are you sure you want to delete your account?
-                      </DialogTitle>
-                      <DialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete your account and remove your data from our
-                        servers.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="sm:justify-start">
-                      <DialogClose asChild>
-                        <Button type="button" variant="secondary">
-                          Close
-                        </Button>
-                      </DialogClose>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={handleDeleteProfile}
-                      >
-                        Confirm
+              <Dialog>
+                <DialogTrigger asChild className="z-20 w-full">
+                  <Button
+                    variant="destructive"
+                    className="w-full z-20 shadow-md bg-red-500"
+                  >
+                    Delete my profile
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      Are you sure you want to delete your account?
+                    </DialogTitle>
+                    <DialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      your account and remove your data from our servers.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                      <Button type="button" variant="secondary">
+                        Close
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </Button>
+                    </DialogClose>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={handleDeleteProfile}
+                    >
+                      Confirm
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-2     rounded-lg shadow-black shadow-sm  h-full w-full md:overflow-auto">
               <div className="container mx-auto p-4 flex flex-col gap-5">
                 <TypographyH3>Your Profile</TypographyH3>
 
-                <form onSubmit={handleSubmit(handleUpdateProfile)} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* First Name */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="firstName">First Name</Label>
-          <Input
-            id="firstName"
-            {...register("firstName", { required: true })}
-          />
-          {errors.firstName && (
-            <span className="text-sm text-red-500">
-              *{errors.firstName.message}
-            </span>
-          )}
-        </div>
+                <form
+                  onSubmit={handleSubmit(handleUpdateProfile)}
+                  className="space-y-4"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* First Name */}
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        {...register("firstName", { required: true })}
+                      />
+                      {errors.firstName && (
+                        <span className="text-sm text-red-500">
+                          *{errors.firstName.message}
+                        </span>
+                      )}
+                    </div>
 
-        {/* Last Name */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="lastName">Last Name</Label>
-          <Input id="lastName" {...register("lastName", { required: true })} />
-          {errors.lastName && (
-            <span className="text-sm text-red-500">
-              *{errors.lastName.message}
-            </span>
-          )}
-        </div>
+                    {/* Last Name */}
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        {...register("lastName", { required: true })}
+                      />
+                      {errors.lastName && (
+                        <span className="text-sm text-red-500">
+                          *{errors.lastName.message}
+                        </span>
+                      )}
+                    </div>
 
-        {/* Phone */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" {...register("phone")} />
-          {errors.phone && (
-            <span className="text-sm text-red-500">
-              *{errors.phone.message}
-            </span>
-          )}
-        </div>
+                    {/* D.O.B */}
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="dateOfBirth">D.O.B</Label>
+                      <DatePicker
+                        value={watch("dateOfBirth")} // use react-hook-form's watch to get the value
+                        onChange={(date) => {
+                          const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                            .toISOString()
+                            .slice(0, 10);
+                          setValue("dateOfBirth", localDate);
+                        }}
+                      />
+                      {errors.dateOfBirth && (
+                        <span className="text-sm text-red-500">
+                          *{errors.dateOfBirth.message}
+                        </span>
+                      )}
+                    </div>
 
-        {/* Email */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" {...register("email", { required: true })} />
-          {errors.email && (
-            <span className="text-sm text-red-500">
-              *{errors.email.message}
-            </span>
-          )}
-        </div>
+                    {/* Phone */}
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input id="phone" {...register("phone")} />
+                      {errors.phone && (
+                        <span className="text-sm text-red-500">
+                          *{errors.phone.message}
+                        </span>
+                      )}
+                    </div>
 
-        {/* Address */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="address">Address</Label>
-          <Input id="address" {...register("address", { required: true })} />
-          {errors.address && (
-            <span className="text-sm text-red-500">
-              *{errors.address.message}
-            </span>
-          )}
-        </div>
+                    {/* Email */}
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        {...register("email", { required: true })}
+                      />
+                      {errors.email && (
+                        <span className="text-sm text-red-500">
+                          *{errors.email.message}
+                        </span>
+                      )}
+                    </div>
 
-        {/* Shipping Address */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="shippingAddress">Shipping Address</Label>
-          <Input id="shippingAddress" {...register("shippingAddress")} />
-          {errors.shippingAddress && (
-            <span className="text-sm text-red-500">
-              *{errors.shippingAddress.message}
-            </span>
-          )}
-        </div>
+                    {/* Dynamic Address Fields */}
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex flex-col gap-2">
+                        <Label htmlFor={`address.${index}.street`}>
+                          Street
+                        </Label>
+                        <Input
+                          id={`address.${index}.street`}
+                          {...register(`address.${index}.street`)}
+                        />
+                        {errors.address?.[index]?.street && (
+                          <span className="text-sm text-red-500">
+                            *{errors.address[index].street.message}
+                          </span>
+                        )}
 
-        {/* Billing Address */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="billingAddress">Billing Address</Label>
-          <Input id="billingAddress" {...register("billingAddress")} />
-          {errors.billingAddress && (
-            <span className="text-sm text-red-500">
-              *{errors.billingAddress.message}
-            </span>
-          )}
-        </div>
+                        <Label htmlFor={`address.${index}.city`}>City</Label>
+                        <Input
+                          id={`address.${index}.city`}
+                          {...register(`address.${index}.city`)}
+                        />
+                        {errors.address?.[index]?.city && (
+                          <span className="text-sm text-red-500">
+                            *{errors.address[index].city.message}
+                          </span>
+                        )}
 
-        {/* Date of Birth */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="dateOfBirth">Date of Birth</Label>
-          <Input type="date" id="dateOfBirth" {...register("dateOfBirth")} />
-          {errors.dateOfBirth && (
-            <span className="text-sm text-red-500">
-              *{errors.dateOfBirth.message}
-            </span>
-          )}
-        </div>
-      </div>
+                        <Label htmlFor={`address.${index}.state`}>State</Label>
+                        <Input
+                          id={`address.${index}.state`}
+                          {...register(`address.${index}.state`)}
+                        />
+                        {errors.address?.[index]?.state && (
+                          <span className="text-sm text-red-500">
+                            *{errors.address[index].state.message}
+                          </span>
+                        )}
 
-      <Button type="submit">Update Profile</Button>
-    </form>
+                        <Label htmlFor={`address.${index}.postalCode`}>
+                          Postal Code
+                        </Label>
+                        <Input
+                          id={`address.${index}.postalCode`}
+                          {...register(`address.${index}.postalCode`)}
+                        />
+                        {errors.address?.[index]?.postalCode && (
+                          <span className="text-sm text-red-500">
+                            *{errors.address[index].postalCode.message}
+                          </span>
+                        )}
+
+                        <Label htmlFor={`address.${index}.country`}>
+                          Country
+                        </Label>
+                        <Input
+                          id={`address.${index}.country`}
+                          {...register(`address.${index}.country`)}
+                        />
+                        {errors.address?.[index]?.country && (
+                          <span className="text-sm text-red-500">
+                            *{errors.address[index].country.message}
+                          </span>
+                        )}
+
+                        {/* Button to remove address */}
+                        <button type="button" onClick={() => remove(index)}>
+                          Remove Address
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add new address button */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        append({
+                          street: "",
+                          city: "",
+                          state: "",
+                          postalCode: "",
+                          country: "",
+                        })
+                      }
+                    >
+                      Add Address
+                    </button>
+                  </div>
+
+                  <Button type="submit">Update Profile</Button>
+                </form>
               </div>
             </div>
           </div>
