@@ -54,9 +54,9 @@ const ProfileSchema = z.object({
       ])
     )
     .optional(),
-    dateOfBirth: z.string().refine((value) => new Date(value) < new Date(), {
-      message: "Date of birth must be in the past",
-    }),
+  dateOfBirth: z.string().refine((value) => new Date(value) < new Date(), {
+    message: "Date of birth must be in the past",
+  }),
 });
 
 const UpdatePasswordSchema = z.object({
@@ -95,9 +95,7 @@ const UserProfile = () => {
       dateOfBirth: user?.dateOfBirth
         ? new Date(user.dateOfBirth).toISOString().slice(0, 10)
         : "",
-        
     },
-    
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -563,7 +561,9 @@ const UserProfile = () => {
                       <DatePicker
                         value={watch("dateOfBirth")} // use react-hook-form's watch to get the value
                         onChange={(date) => {
-                          const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                          const localDate = new Date(
+                            date.getTime() - date.getTimezoneOffset() * 60000
+                          )
                             .toISOString()
                             .slice(0, 10);
                           setValue("dateOfBirth", localDate);
@@ -600,10 +600,28 @@ const UserProfile = () => {
                         </span>
                       )}
                     </div>
-
                     {/* Dynamic Address Fields */}
                     {fields.map((field, index) => (
-                      <div key={field.id} className="flex flex-col gap-2">
+                      <div
+                        key={field.id}
+                        className="flex flex-col gap-2 md:col-span-2 mb-3 border p-4 rounded-lg"
+                      >
+                        {/* Title with Address Number */}
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-semibold">
+                            Address {index + 1}
+                          </h3>
+                          {/* Button to remove address, positioned next to the title */}
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => remove(index)}
+                            className="ml-4"
+                          >
+                            Remove Address
+                          </Button>
+                        </div>
+
                         <Label htmlFor={`address.${index}.street`}>
                           Street
                         </Label>
@@ -664,17 +682,13 @@ const UserProfile = () => {
                             *{errors.address[index].country.message}
                           </span>
                         )}
-
-                        {/* Button to remove address */}
-                        <button type="button" onClick={() => remove(index)}>
-                          Remove Address
-                        </button>
                       </div>
                     ))}
 
                     {/* Add new address button */}
-                    <button
+                    <Button
                       type="button"
+                      className="flex m-auto col-span-2"
                       onClick={() =>
                         append({
                           street: "",
@@ -686,7 +700,7 @@ const UserProfile = () => {
                       }
                     >
                       Add Address
-                    </button>
+                    </Button>
                   </div>
 
                   <Button type="submit">Update Profile</Button>
