@@ -42,16 +42,14 @@ const ProfileSchema = z.object({
   email: z.string().email("Invalid email address"),
   address: z
     .array(
-      z.union([
-        z.string(),
-        z.object({
-          street: z.string(),
-          city: z.string(),
-          state: z.string(),
-          postalCode: z.string(),
-          country: z.string(),
-        }),
-      ])
+      z.object({
+        _id: z.string().optional(), // Mark _id as optional if it's not required during form creation
+        street: z.string().min(1, "Street is required"),
+        city: z.string().min(1, "City is required"),
+        state: z.string().min(1, "State is required"),
+        postalCode: z.string().min(1, "Postal Code is required"),
+        country: z.string().min(1, "Country is required"),
+      })
     )
     .optional(),
   dateOfBirth: z.string().refine((value) => new Date(value) < new Date(), {
@@ -89,7 +87,14 @@ const UserProfile = () => {
       phone: user?.phone,
       email: user?.email,
       address: user?.address || [
-        { street: "", city: "", state: "", postalCode: "", country: "" },
+        {
+          _id: "",
+          street: "",
+          city: "",
+          state: "",
+          postalCode: "",
+          country: "",
+        },
       ],
 
       dateOfBirth: user?.dateOfBirth
@@ -518,15 +523,18 @@ const UserProfile = () => {
               </Dialog>
             </div>
 
-            <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 p-2     rounded-lg shadow-black shadow-sm  h-full w-full md:overflow-auto">
-              <div className="container mx-auto p-4 flex flex-col gap-5">
-                <TypographyH3>Your Profile</TypographyH3>
+            <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 rounded-lg shadow-black shadow-sm  h-full w-full md:overflow-auto">
+              <div className="container mx-auto px-4 flex flex-col gap-5 ">
+                {/* Sticky Profile Heading */}
+                <TypographyH3 className="sticky top-0 bg-white w-full z-10 py-3">
+                  Your Profile
+                </TypographyH3>
 
                 <form
                   onSubmit={handleSubmit(handleUpdateProfile)}
                   className="space-y-4"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
                     {/* First Name */}
                     <div className="flex flex-col gap-2">
                       <Label htmlFor="firstName">First Name</Label>
@@ -559,7 +567,7 @@ const UserProfile = () => {
                     <div className="flex flex-col gap-2">
                       <Label htmlFor="dateOfBirth">D.O.B</Label>
                       <DatePicker
-                        value={watch("dateOfBirth")} // use react-hook-form's watch to get the value
+                        value={watch("dateOfBirth")}
                         onChange={(date) => {
                           const localDate = new Date(
                             date.getTime() - date.getTimezoneOffset() * 60000
@@ -600,18 +608,17 @@ const UserProfile = () => {
                         </span>
                       )}
                     </div>
+
                     {/* Dynamic Address Fields */}
                     {fields.map((field, index) => (
                       <div
                         key={field.id}
                         className="flex flex-col gap-2 md:col-span-2 mb-3 border p-4 rounded-lg"
                       >
-                        {/* Title with Address Number */}
                         <div className="flex justify-between items-center">
                           <h3 className="text-lg font-semibold">
                             Address {index + 1}
                           </h3>
-                          {/* Button to remove address, positioned next to the title */}
                           <Button
                             type="button"
                             variant="destructive"
@@ -685,7 +692,6 @@ const UserProfile = () => {
                       </div>
                     ))}
 
-                    {/* Add new address button */}
                     <Button
                       type="button"
                       className="flex m-auto col-span-2"
@@ -703,7 +709,10 @@ const UserProfile = () => {
                     </Button>
                   </div>
 
-                  <Button type="submit">Update Profile</Button>
+                  {/* Fixed Update Profile Button */}
+                  <div className="sticky w-full bottom-0 bg-white p-2 pt-1">
+                    <Button type="submit" className="w-full">Update Profile</Button>
+                  </div>
                 </form>
               </div>
             </div>
