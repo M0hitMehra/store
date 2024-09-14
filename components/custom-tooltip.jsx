@@ -25,7 +25,7 @@ const CustomTooltip = ({
           side={side}
         >
           {content}
-          <TooltipArrow className=" fill-gray-500 " />
+          <TooltipArrow className=" fill-gray-300 " />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

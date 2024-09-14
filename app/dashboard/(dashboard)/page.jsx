@@ -22,13 +22,14 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { toast } from "@/components/ui/use-toast";
-import { Edit, ShieldBan } from "lucide-react";
+import { Edit, ShieldBan, Trash2 } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
 import imageCompression from "browser-image-compression";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/date-picker";
+import CustomTooltip from "@/components/custom-tooltip";
 
 const ProfileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -399,14 +400,6 @@ const UserProfile = () => {
                   </DialogContent>
                 </Dialog>
               </div>
-              <Button
-                className={`w-full z-20 shadow-md ${
-                  editMode ? "bg-blue-500" : "bg-gray-500"
-                }`}
-                onClick={handleEditClick}
-              >
-                Edit profile
-              </Button>
 
               <Button
                 className="w-full shadow-md z-20 bg-blue-500"
@@ -524,9 +517,9 @@ const UserProfile = () => {
             </div>
 
             <div className="col-span-1 relative md:col-span-6 flex flex-col gap-6 rounded-lg shadow-black shadow-sm  h-full w-full md:overflow-auto">
-              <div className="container mx-auto px-4 flex flex-col gap-5 ">
+              <div className="container mx-auto px-4 flex flex-col gap-5">
                 {/* Sticky Profile Heading */}
-                <TypographyH3 className="sticky top-0 bg-white w-full z-10 py-3">
+                <TypographyH3 className=" relative md:sticky top-0 bg-white w-full z-10 py-3">
                   Your Profile
                 </TypographyH3>
 
@@ -534,7 +527,7 @@ const UserProfile = () => {
                   onSubmit={handleSubmit(handleUpdateProfile)}
                   className="space-y-4"
                 >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
+                  <div className="lg:grid flex flex-col   lg:grid-cols-2 gap-4 my-2">
                     {/* First Name */}
                     <div className="flex flex-col gap-2">
                       <Label htmlFor="firstName">First Name</Label>
@@ -616,7 +609,7 @@ const UserProfile = () => {
                         className="flex flex-col gap-2 md:col-span-2 mb-3 border p-4 rounded-lg"
                       >
                         <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold">
+                          <h3 className="text-base text-nowrap font-semibold">
                             Address {index + 1}
                           </h3>
                           <Button
@@ -624,8 +617,11 @@ const UserProfile = () => {
                             variant="destructive"
                             onClick={() => remove(index)}
                             className="ml-4"
+                            size="icon"
                           >
-                            Remove Address
+                            <CustomTooltip content={"Remove Address"}>
+                              <Trash2 />
+                            </CustomTooltip>
                           </Button>
                         </div>
 
@@ -709,9 +705,11 @@ const UserProfile = () => {
                     </Button>
                   </div>
 
-                  {/* Fixed Update Profile Button */}
-                  <div className="sticky w-full bottom-0 bg-white p-2 pt-1">
-                    <Button type="submit" className="w-full">Update Profile</Button>
+                  {/* Sticky Update Profile Button for small screens */}
+                  <div className=" w-full bottom-0 bg-white p-2 pt-1 z-10 sticky">
+                    <Button type="submit" className="w-full">
+                      Update Profile
+                    </Button>
                   </div>
                 </form>
               </div>

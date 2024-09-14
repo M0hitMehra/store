@@ -669,10 +669,13 @@ const Navbar = () => {
 
   return (
     <section
-      className={clsx("w-screen top-0 z-50 transition-transform duration-300 fixed", {
-        "-translate-y-full": !isVisible,
-        "translate-y-0": isVisible,
-      })}
+      className={clsx(
+        "w-screen top-0 z-50 transition-transform duration-300 fixed",
+        {
+          "-translate-y-full": !isVisible,
+          "translate-y-0": isVisible,
+        }
+      )}
     >
       <nav className="hidden xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900">
         <div className="col-span-8 flex gap-10 justify-start items-center">
@@ -740,12 +743,15 @@ const Navbar = () => {
             width={40}
             height={40}
             className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            onClick={() => router.push("/dashboard/cart")}
           />
           <ShoppingCart
             color="white"
             width={40}
             height={40}
             className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            onClick={() => router.push("/dashboard/wishlist")}
+
           />
 
           <UserDropDown />
