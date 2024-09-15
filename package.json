@@ -28,6 +28,7 @@
     "embla-carousel-autoplay": "^8.1.5",
     "embla-carousel-react": "^8.1.5",
     "input-otp": "^1.2.4",
+    "lodash.throttle": "^4.1.1",
     "lucide-react": "^0.306.0",
     "next": "14.0.4",
     "react": "^18",

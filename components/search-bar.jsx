@@ -9,7 +9,7 @@ import axios from "axios";
 import { server } from "@/lib/utils";
 import { Loader, Search } from "lucide-react";
 
-const SearchBar = ({ className }) => {
+const SearchBar = ({ className,setIsSearchClicked }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedTerm] = useDebounce(searchTerm, 500);
   const [suggestions, setSuggestions] = useState([]);
@@ -91,17 +91,20 @@ const SearchBar = ({ className }) => {
       } else {
         router.push(`/search?query=${searchTerm}`);
       }
+      setIsSearchClicked(false)
     }
   };
 
   // Handle suggestion click
   const handleSuggestionClick = (product) => {
     router.push(`/product/${product._id}`);
+    setIsSearchClicked(false)
   };
 
   // Handle search icon click (same as Enter key behavior)
   const handleSearchClick = () => {
     router.push(`/search?query=${searchTerm}`);
+    setIsSearchClicked(false)
   };
 
   return (

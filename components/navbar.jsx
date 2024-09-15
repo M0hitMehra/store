@@ -754,6 +754,7 @@ const Navbar = () => {
           />
 
           <SearchBar
+          setIsSearchClicked={setIsSearchClicked}
             className={{
               "absolute h-full w-full left-0 top-0 right-10 bg-black transition-all duration-300 z-20":
                 isSearchClicked,
