@@ -74,12 +74,16 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
             width={30}
             height={30}
             className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            onClick={() => router.push("/dashboard/wishlist")}
+
           />
           <ShoppingCart
             color="white"
             width={30}
             height={30}
             className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            onClick={() => router.push("/dashboard/cart")}
+
           />
 
           {!isMobileMenu ? (

@@ -30,8 +30,7 @@ const ProductCarousel = ({ images, color, onClick }) => {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
+      
     </Carousel>
   );
 };

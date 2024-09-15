@@ -10,11 +10,13 @@ import pumaLogo from "@/public/puma-logo.svg";
 import Image from "next/image";
 import UserDropDown from "./userDropDown";
 import MobileNavbar from "./mobile-navbar";
+import SearchBar from "./search-bar";
 
 const Navbar = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [hoveredLink, setHoveredLink] = useState("");
+  const [isSearchClicked, setIsSearchClicked] = useState(false);
   const router = useRouter();
 
   //   Navbar Category Links
@@ -655,6 +657,7 @@ const Navbar = () => {
   ];
 
   useEffect(() => {
+    if(isSearchClicked)return
     const handleScroll = () => {
       const currentScrollPos = window.pageYOffset;
       setIsVisible(scrollPosition > currentScrollPos || currentScrollPos < 10);
@@ -665,16 +668,23 @@ const Navbar = () => {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [scrollPosition]);
+  }, [isSearchClicked, scrollPosition]);
+
+  const handleSearchClick = () => {
+    setIsSearchClicked(true);
+  };
 
   return (
     <section
-      className={clsx("w-screen top-0 z-50 transition-transform duration-300 fixed", {
-        "-translate-y-full": !isVisible,
-        "translate-y-0": isVisible,
-      })}
+      className={clsx(
+        "w-screen top-0 z-50 transition-transform duration-300 fixed ",
+        {
+          "-translate-y-full": !isVisible,
+          "translate-y-0": isVisible,
+        }
+      )}
     >
-      <nav className="hidden xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900">
+      <nav className="hidden xl:grid xl:grid-cols-12 px-5 py-5 bg-neutral-900 ">
         <div className="col-span-8 flex gap-10 justify-start items-center">
           {/* Logo */}
           <Image
@@ -722,7 +732,8 @@ const Navbar = () => {
           {/* search */}
           <Button
             variant={"ghost"}
-            className="text-white xl:hidden flex gap-3 justify-between rounded-lg border-[1px] border-gray-500 hover:border-gray-400 shadow-xs shadow-white px-6 hover:bg-neutral-900"
+            className="text-white xl:hidden flex gap-3 justify-between rounded-lg border-[1px] border-gray-500 hover:border-gray-400 shadow-xs shadow-white px-6
+             hover:bg-neutral-900"
           >
             <Search color="white" width={18} height={18} />
             <p className="">Search</p>
@@ -732,7 +743,23 @@ const Navbar = () => {
             color="white"
             width={40}
             height={40}
-            className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer text-white hidden xl:block"
+            className={clsx(
+              "hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer text-white hidden xl:block ",
+              {
+                "absolute h-full w-full left-0 top-0 right-10 bg-black xl:hidden transition-all duration-300":
+                  isSearchClicked,
+              }
+            )}
+            onClick={handleSearchClick}
+          />
+
+          <SearchBar
+          setIsSearchClicked={setIsSearchClicked}
+            className={{
+              "absolute h-full w-full left-0 top-0 right-10 bg-black transition-all duration-300 z-20":
+                isSearchClicked,
+              hidden: !isSearchClicked,
+            }}
           />
 
           <Heart
@@ -740,12 +767,14 @@ const Navbar = () => {
             width={40}
             height={40}
             className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            onClick={() => router.push("/dashboard/cart")}
           />
           <ShoppingCart
             color="white"
             width={40}
             height={40}
             className="hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            onClick={() => router.push("/dashboard/wishlist")}
           />
 
           <UserDropDown />
@@ -837,6 +866,15 @@ const Navbar = () => {
             </div>
           )
       )}
+      <span
+        className={clsx(
+          "absolute w-screen h-screen bg-white/30 backdrop-blur-sm top-0 left-0",
+          {
+            hidden: !isSearchClicked,
+          }
+        )}
+        onClick={() => setIsSearchClicked(false)}
+      ></span>
     </section>
   );
 };
