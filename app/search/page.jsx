@@ -5,6 +5,9 @@ import axios from "axios";
 import { server } from "@/lib/utils"; // Adjust this import based on your project structure
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useDebounce } from "use-debounce"; // For debouncing search
+import CustomSelect from "@/components/custom-select";
+import ProductCard from "@/components/productCard";
 
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -15,20 +18,48 @@ const Search = () => {
   const [sort, setSort] = useState("createdAt");
   const [order, setOrder] = useState("asc");
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [sizes, setSizes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [debouncedTerm] = useDebounce(searchTerm, 500); // Debounce search term
+
+  // Fetch filter options (categories, brands, colors, sizes) from APIs
+  useEffect(() => {
+    const fetchFilters = async () => {
+      try {
+        const [categoryRes, brandRes, colorRes, sizeRes] = await Promise.all([
+          axios.get(`${server}/category/getAll`),
+          axios.get(`${server}/brand/getAll`),
+          axios.get(`${server}/color/getAll`),
+          axios.get(`${server}/size/getAll`),
+        ]);
+
+        setCategories(categoryRes.data.categories || []);
+        setBrands(brandRes.data.brands || []);
+        setColors(colorRes.data.colors || []);
+        setSizes(sizeRes.data.sizes || []);
+      } catch (error) {
+        console.error("Error fetching filter data:", error);
+      }
+    };
+
+    fetchFilters();
+  }, []);
 
   // Fetch products from API based on filters
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, category, brand, color, size, sort, order]);
+  }, [debouncedTerm, category, brand, color, size, sort, order]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const { data } = await axios.get(`${server}/products`, {
         params: {
-          search: searchTerm,
+          search: debouncedTerm,
           category,
           brand,
           color,
@@ -47,6 +78,17 @@ const Search = () => {
     }
   };
 
+  const sortOptions = [
+    { _id: "createdAt", name: "Newest" },
+    { _id: "price", name: "Price" },
+    // Add more sort options here if needed
+  ];
+
+  const orderOptions = [
+    { _id: "asc", name: "Ascending" },
+    { _id: "desc", name: "Descending" },
+  ];
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Search Products</h1>
@@ -60,53 +102,66 @@ const Search = () => {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mt-4">
-        <Select value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="">All Categories</option>
-          {/* Add options for categories */}
-        </Select>
+        {/* Category Filter */}
+        <CustomSelect
+          placeholder={"Categories"}
+          options={categories}
+          value={category}
+          setValue={setCategory}
+        />
 
-        <Select value={brand} onChange={(e) => setBrand(e.target.value)}>
-          <option value="">All Brands</option>
-          {/* Add options for brands */}
-        </Select>
+        {/* Brand Filter */}
+        <CustomSelect
+          placeholder={"Brands"}
+          options={brands}
+          value={brand}
+          setValue={setBrand}
+        />
 
-        <Select value={color} onChange={(e) => setColor(e.target.value)}>
-          <option value="">All Colors</option>
-          {/* Add options for colors */}
-        </Select>
+        {/* Color Filter */}
+        <CustomSelect
+          placeholder={"Colors"}
+          options={colors}
+          value={color}
+          setValue={setColor}
+        />
 
-        <Select value={size} onChange={(e) => setSize(e.target.value)}>
-          <option value="">All Sizes</option>
-          {/* Add options for sizes */}
-        </Select>
+        {/* Size Filter */}
+        <CustomSelect
+          placeholder={"Sizes"}
+          options={sizes}
+          value={size}
+          setValue={setSize}
+        />
 
-        <Select value={sort} onChange={(e) => setSort(e.target.value)}>
-          <option value="createdAt">Newest</option>
-          <option value="price">Price</option>
-          {/* Add other sorting options if needed */}
-        </Select>
+        {/* Sort and Order */}
+        <CustomSelect
+          placeholder={"Sort By"}
+          options={sortOptions}
+          value={sort}
+          setValue={setSort}
+        />
 
-        <Select value={order} onChange={(e) => setOrder(e.target.value)}>
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
-        </Select>
+        <CustomSelect
+          placeholder={"Order By"}
+          options={orderOptions}
+          value={order}
+          setValue={setOrder}
+        />
       </div>
 
       {/* Product Results */}
       <div className="mt-6">
         {loading ? (
           <p>Loading...</p>
-        )  : products.length === 0 ? (
+        ) : error ? (
+          <p>{error}</p>
+        ) : products.length === 0 ? (
           <p>No products found.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 border-2 justify-center items-center gap-6">
             {products.map((product) => (
-              <div key={product._id} className="border p-4">
-                <h3 className="font-bold">{product.title}</h3>
-                <p>{product.description}</p>
-                <p>${product.price}</p>
-                {/* Add more product details as needed */}
-              </div>
+              <ProductCard key={product?._id} detail={product} />
             ))}
           </div>
         )}
