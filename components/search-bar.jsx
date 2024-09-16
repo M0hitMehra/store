@@ -108,7 +108,7 @@ const SearchBar = ({ className,setIsSearchClicked }) => {
   };
 
   return (
-    <div className={clsx("p-6 bg-black ", className)}>
+    <div className={clsx("p-5 md:p-6 bg-black ", className)}>
       <div className="w-full h-full relative">
         <Input
           className="w-full h-full p-4 text-gray-600 rounded-b-none border-none ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -123,7 +123,7 @@ const SearchBar = ({ className,setIsSearchClicked }) => {
         {/* Search icon with onClick handler */}
         {!loading && (
           <button
-            className="absolute right-2 top-2 text-gray-600"
+            className="absolute right-2 top-0 text-gray-600 m-auto h-full flex justify-center items-center  "
             onClick={handleSearchClick}
           >
             <Search size={24} />
@@ -132,7 +132,8 @@ const SearchBar = ({ className,setIsSearchClicked }) => {
 
         {/* Loader */}
         {loading && (
-          <div className="absolute right-2 top-2 text-gray-600 animate-spin">
+          <div
+            className="absolute right-2 top-0 text-gray-600 m-auto h-full flex justify-center items-center animate-spin">
             <Loader size={24} />
           </div>
         )}
