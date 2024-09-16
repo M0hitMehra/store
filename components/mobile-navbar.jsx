@@ -9,7 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import clsx from "clsx";
@@ -17,6 +17,7 @@ import axios from "axios";
 import { toast } from "./ui/use-toast";
 import useAuthStore from "@/stores/useAuthStore";
 import { server } from "@/lib/utils";
+import SearchBar from "./search-bar";
 
 const MobileNavbar = ({ links, navLinksDropDown }) => {
   const setUser = useAuthStore((state) => state.setUser);
@@ -25,6 +26,9 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
   const [hoveredLink, setHoveredLink] = useState("");
   const [isMobileMenu, setIsMobileMenu] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isSearchClicked, setIsSearchClicked] = useState(false);
+
   const logoutHandler = async () => {
     try {
       const { data } = await axios.get(`${server}/auth/logout`, {
@@ -47,9 +51,17 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
     }
   };
 
+  useEffect(() => {
+    if (isSearchClicked) return;
+  }, [isSearchClicked]);
+
+  const handleSearchClick = () => {
+    setIsSearchClicked(true);
+  };
+
   return (
-    <div className="xl:hidden sticky flex flex-col">
-      <div className="xl:hidden flex justify-between items-center w-full fixed p-4 bg-neutral-900 z-10">
+    <div className="xl:hidden sticky flex flex-col ">
+      <div className="  flex justify-between items-center w-full p-4 bg-neutral-900 z-10">
         {/* Logog */}
         <Image
           src="/puma-logo.svg"
@@ -66,7 +78,23 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
             color="white"
             width={30}
             height={30}
-            className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
+            className={clsx(
+              "hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer text-white block xl:hidden ",
+              {
+                "absolute hidden h-full w-full left-0 top-0 right-10 bg-black xl:block transition-all duration-300":
+                  isSearchClicked,
+              }
+            )}
+            onClick={handleSearchClick}
+          />
+
+          <SearchBar
+            setIsSearchClicked={setIsSearchClicked}
+            className={{
+              "absolute h-full w-full left-0 top-0 right-10 bg-black transition-all duration-300 z-20":
+                isSearchClicked,
+              hidden: !isSearchClicked,
+            }}
           />
 
           <Heart
@@ -75,7 +103,6 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
             height={30}
             className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
             onClick={() => router.push("/dashboard/wishlist")}
-
           />
           <ShoppingCart
             color="white"
@@ -83,7 +110,6 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
             height={30}
             className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
             onClick={() => router.push("/dashboard/cart")}
-
           />
 
           {!isMobileMenu ? (
@@ -277,6 +303,15 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
           </>
         )}
       </div>
+      <span
+        className={clsx(
+          "absolute w-screen h-screen bg-white/30 backdrop-blur-sm top-0 left-0",
+          {
+            hidden: !isSearchClicked,
+          }
+        )}
+        onClick={() => setIsSearchClicked(false)}
+      ></span>
     </div>
   );
 };
