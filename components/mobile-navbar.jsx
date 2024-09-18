@@ -19,7 +19,12 @@ import useAuthStore from "@/stores/useAuthStore";
 import { server } from "@/lib/utils";
 import SearchBar from "./search-bar";
 
-const MobileNavbar = ({ links, navLinksDropDown }) => {
+const MobileNavbar = ({
+  links,
+  navLinksDropDown,
+  isSearchClicked,
+  setIsSearchClicked,
+}) => {
   const setUser = useAuthStore((state) => state.setUser);
   const user = useAuthStore((state) => state.user);
   const router = useRouter();
@@ -27,7 +32,6 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
   const [isMobileMenu, setIsMobileMenu] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
-  const [isSearchClicked, setIsSearchClicked] = useState(false);
 
   const logoutHandler = async () => {
     try {
@@ -60,7 +64,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
   };
 
   return (
-    <div className="xl:hidden sticky flex flex-col ">
+    <div className="xl:hidden sticky flex flex-col  z-20">
       <div className="  flex justify-between items-center w-full p-4 bg-neutral-900 z-10">
         {/* Logog */}
         <Image
@@ -91,7 +95,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
           <SearchBar
             setIsSearchClicked={setIsSearchClicked}
             className={{
-              "absolute h-full w-full left-0 top-0 right-10 bg-black transition-all duration-300 z-20":
+              "absolute h-full w-full left-0 top-0 right-10 bg-black transition-all duration-300":
                 isSearchClicked,
               hidden: !isSearchClicked,
             }}
@@ -145,7 +149,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
       >
         {isModalOpen && (
           <>
-            <div className=" overflow-x-hidden top-0 left-0 absolute  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center pt-24">
+            <div className=" overflow-x-hidden top-0 left-0 absolute  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center pt-6">
               {/* Categories */}
               <div className=" flex flex-col justify-between items-center h-full">
                 <div className=" flex flex-col justify-around gap-5">
@@ -168,7 +172,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
                     </div>
                   ))}
                 </div>
-                <div className=" w-full flex gap-3 justify-center items-center p-10">
+                <div className=" w-full flex gap-3 justify-center items-center pb-20">
                   {!user ? (
                     <>
                       <Button
@@ -222,7 +226,7 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
                 hoveredLink.toLowerCase() === item.category.toLowerCase() && (
                   <div
                     key={item?.category}
-                    className=" overflow-scroll scroll-smooth absolute  top-0 left-0  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center p-10 pt-24"
+                    className=" overflow-scroll scroll-smooth absolute  top-0 left-0  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center p-10 pt-6"
                     onMouseEnter={() => {
                       setHoveredLink(item?.category);
                     }}
@@ -231,11 +235,11 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
                     }}
                   >
                     <div
-                      className=" fixed left-0 pl-2 flex gap-2 cursor-pointer justify-center items-center   z-[1000] "
+                      className=" fixed left-0 px-2 flex gap-1 cursor-pointer justify-center items-center z-[1000] "
                       onClick={() => setHoveredLink("")}
                     >
                       <ArrowBigLeftDash />
-                      <p className="text-neutral-60 font-bold">Go Back</p>
+                      <p className="text-neutral-60 text-sm font-bold">Back</p>
                     </div>
                     <div className=" flex flex-col gap-5  cursor-pointer  w-full ">
                       {item?.rightSide?.map((rightSideItem) => (
@@ -303,15 +307,6 @@ const MobileNavbar = ({ links, navLinksDropDown }) => {
           </>
         )}
       </div>
-      <span
-        className={clsx(
-          "absolute w-screen h-screen bg-white/30 backdrop-blur-sm top-0 left-0",
-          {
-            hidden: !isSearchClicked,
-          }
-        )}
-        onClick={() => setIsSearchClicked(false)}
-      ></span>
     </div>
   );
 };

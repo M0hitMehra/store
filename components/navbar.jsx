@@ -11,6 +11,7 @@ import Image from "next/image";
 import UserDropDown from "./userDropDown";
 import MobileNavbar from "./mobile-navbar";
 import SearchBar from "./search-bar";
+import useCategoryStore from "@/stores/useCategoryStore";
 
 const Navbar = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -32,8 +33,14 @@ const Navbar = () => {
     { text: "Outlet", key: "Outlet" },
   ];
 
-  //   all Category
+  const { categories, fetchCategories, loading, error } = useCategoryStore();
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
+  console.log(categories)
+
+  //   all Category
   const navLinksDropDown = [
     {
       category: "new",
@@ -679,8 +686,8 @@ const Navbar = () => {
       className={clsx(
         "w-screen top-0 z-50 transition-transform duration-300 fixed ",
         {
-          "-translate-y-full": !isVisible,
-          "translate-y-0": isVisible,
+          "-translate-y-full": !isVisible ,
+          "translate-y-0": isVisible ,
         }
       )}
     >
@@ -781,7 +788,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      <MobileNavbar links={links} navLinksDropDown={navLinksDropDown} />
+      <MobileNavbar links={links} navLinksDropDown={navLinksDropDown} isSearchClicked={isSearchClicked} setIsSearchClicked={setIsSearchClicked} />
 
       {navLinksDropDown?.map(
         (item) =>

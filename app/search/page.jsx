@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useRouter, useSearchParams } from "next/navigation";
 import { server } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "use-debounce"; // For debouncing search
@@ -19,13 +20,25 @@ import {
 } from "@/components/ui/pagination";
 
 const Search = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [category, setCategory] = useState("");
-  const [brand, setBrand] = useState("");
-  const [color, setColor] = useState("");
-  const [size, setSize] = useState("");
-  const [sort, setSort] = useState("createdAt");
-  const [order, setOrder] = useState("asc");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Extract search parameters from URL
+  const initialSearchTerm = searchParams.get("query") || "";
+  const initialCategory = searchParams.get("category") || "";
+  const initialBrand = searchParams.get("brand") || "";
+  const initialColor = searchParams.get("color") || "";
+  const initialSize = searchParams.get("size") || "";
+  const initialSort = searchParams.get("sort") || "createdAt";
+  const initialOrder = searchParams.get("order") || "asc";
+
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [category, setCategory] = useState(initialCategory);
+  const [brand, setBrand] = useState(initialBrand);
+  const [color, setColor] = useState(initialColor);
+  const [size, setSize] = useState(initialSize);
+  const [sort, setSort] = useState(initialSort);
+  const [order, setOrder] = useState(initialOrder);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
