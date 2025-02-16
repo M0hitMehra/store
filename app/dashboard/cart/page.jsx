@@ -10,25 +10,35 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash } from "lucide-react";
 
-const CartItem = ({ item }) => {
+const CartItem = ({ item, setChangesMade }) => {
   const route = useRouter();
   const updateProductQuantity = useCartStore(
     (state) => state?.updateProductQuantity
   );
   const removeProduct = useCartStore((state) => state?.removeProduct);
 
-  const handleDecrease = () => {
+  const handleDecrease = async () => {
     if (item?.quantity > 1) {
-      updateProductQuantity(item?.product?._id, item?.quantity - 1);
+      await updateProductQuantity(
+        item?.product?._id,
+        item?.variant,
+        item?.quantity - 1
+      );
     }
   };
 
-  const handleIncrease = () => {
-    updateProductQuantity(item?.product?._id, item?.quantity + 1);
+  const handleIncrease = async () => {
+    await updateProductQuantity(
+      item?.product?._id,
+      item?.variant,
+      item?.quantity + 1
+    );
   };
 
-  const handleRemove = () => {
-    removeProduct(item?.product?._id);
+  const handleRemove = async () => {
+    await removeProduct(item?.product?._id,item?.variant);
+    setChangesMade((prev) => !prev);
+  
   };
 
   return (
@@ -84,11 +94,13 @@ const Cart = () => {
     loading: cartLoading,
   } = useCartStore((state) => state);
 
+  const [changesMade, setChangesMade] = useState(false);
+
   useEffect(() => {
     if (user) {
       fetchCart();
     }
-  }, [user, fetchCart, cart?.length]);
+  }, [user, fetchCart,changesMade]);
 
   if (loading || cartLoading) {
     return (
@@ -107,7 +119,11 @@ const Cart = () => {
         {cart?.length > 0 ? (
           <div className="space-y-4">
             {cart?.map((item) => (
-              <CartItem key={item?.product?._id} item={item} />
+              <CartItem
+                key={item?.product?._id}
+                item={item}
+                setChangesMade={setChangesMade}
+              />
             ))}
             <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
               <Link href="/">
@@ -136,6 +152,5 @@ const Cart = () => {
     </div>
   );
 };
-
 
 export default Cart;
