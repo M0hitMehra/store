@@ -19,31 +19,33 @@ const useCartStore = create((set) => ({
         set({ cart: data.cart, loading: false });
       }
     } catch (error) {
-      set({ loading: false, error: "Failed to fetch cart" });
+      set({ loading: false, error: "Login to view your cart" });
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to fetch cart",
+        description: error?.response?.data?.message || "Failed to fetch cart",
       });
     }
   },
 
-  // Add product to the cart
-  addProduct: async (productId, quantity = 1) => {
+  // Add product with variant to the cart
+  addProduct: async (productId, variantId, quantity = 1) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axios.post(
         `${server}/auth/cart/add`,
-        { productId, quantity },
+        { productId, variantId, quantity },
         { withCredentials: true }
       );
       if (data.success) {
         toast({
           variant: "success",
-          title: "Added to cart successfully",
+          title: "Success",
+          description: data.message || "Added to cart successfully",
         });
+        // Update cart state with the new cart data
         set((state) => ({
-          cart: data.cart,
+          cart: [...state.cart, data.cartItem],
           loading: false,
         }));
         return Promise.resolve();
@@ -51,30 +53,37 @@ const useCartStore = create((set) => ({
     } catch (error) {
       toast({
         variant: "destructive",
-        title: error?.response?.data?.message || "Error",
-        description: "Failed to add product to cart",
+        title: "Error",
+        description:
+          error?.response?.data?.message || "Failed to add product to cart",
       });
       set({ loading: false, error: "Failed to add product to cart" });
       return Promise.reject(error);
     }
   },
 
-  // Remove product from the cart
-  removeProduct: async (productId) => {
+  // Remove product variant from the cart
+  removeProduct: async (productId, variantId) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axios.post(
         `${server}/auth/cart/remove`,
-        { productId },
+        { productId, variantId },
         { withCredentials: true }
       );
       if (data.success) {
         toast({
           variant: "success",
-          title: "Removed from cart successfully",
+          title: "Success",
+          description: data.message || "Removed from cart successfully",
         });
         set((state) => ({
-          cart: data.cart,
+          cart: state.cart.filter(
+            (item) =>
+              !(
+                item.product._id === productId && item.variant._id === variantId
+              )
+          ),
           loading: false,
         }));
         return Promise.resolve();
@@ -83,46 +92,75 @@ const useCartStore = create((set) => ({
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to remove product from cart",
+        description:
+          error?.response?.data?.message ||
+          "Failed to remove product from cart",
       });
       set({ loading: false, error: "Failed to remove product from cart" });
       return Promise.reject(error);
     }
   },
 
-  // Update product quantity in the cart
-  updateProductQuantity: async (productId, quantity) => {
+  // Update product variant quantity in the cart
+  updateProductQuantity: async (productId, variantId, quantity) => {
     set({ loading: true, error: null });
     try {
       const { data } = await axios.put(
         `${server}/auth/cart/update`,
-        { productId, quantity },
+        { productId, variantId, quantity },
         { withCredentials: true }
       );
       if (data.success) {
-        toast({
-          variant: "success",
-          title: "Product quantity updated successfully",
-        });
+        // Immediately update the cart state
         set((state) => ({
-          cart: data.cart,
+          cart: state.cart.map((item) =>
+            item.product._id === productId
+              ? { ...item, quantity: quantity }
+              : item
+          ),
           loading: false,
         }));
-        return Promise.resolve();
+        toast({
+          variant: "success",
+          title: "Success",
+          description: data.message || "Product quantity updated successfully",
+        });
+        return Promise.resolve(data);
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update product quantity",
+        description:
+          error?.response?.data?.message || "Failed to update product quantity",
       });
       set({ loading: false, error: "Failed to update product quantity" });
       return Promise.reject(error);
     }
   },
 
+  // Calculate cart totals
+  getCartTotals: () => {
+    return set((state) => {
+      const totals = state.cart.reduce(
+        (acc, item) => {
+          const itemTotal = item.quantity * item.variant.price;
+          return {
+            totalItems: acc.totalItems + item.quantity,
+            totalAmount: acc.totalAmount + itemTotal,
+          };
+        },
+        { totalItems: 0, totalAmount: 0 }
+      );
+      return { cartTotals: totals };
+    });
+  },
+
   // Set cart state manually
   setCart: (cart) => set({ cart }),
+
+  // Clear cart
+  clearCart: () => set({ cart: [] }),
 }));
 
 export default useCartStore;

@@ -25,7 +25,7 @@ const SingleProductCarousel = ({ data }) => {
                   boxShadow:
                     "0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1)",
                 }}
-                className=" w-full h-[90vh] rounded-md"
+                className=" w-full h-[80vh] rounded-md"
                 width={800} // specify the width of the image
                 height={600} // specify the height of the image
                 zoom="https://demos.imgix.net/wristwatch.jpg?w=1000&ch=DPR&dpr=2"

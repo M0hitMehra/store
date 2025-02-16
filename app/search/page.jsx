@@ -82,12 +82,12 @@ const Search = () => {
           limit,
         },
       });
-
+      setError(null)
       setProducts(data.products);
       setTotalPages(Math.ceil(data.pagination.total / limit)); // Calculate total pages
     } catch (error) {
-      setError("Error fetching products");
       console.error(error);
+      setError(error?.response?.data?.message ||"Error fetching products");
     } finally {
       setLoading(false);
     }
