@@ -1,73 +1,22 @@
-import React, { useEffect } from "react";
+"use client";
+
+import React from "react";
 import ProductCard from "./productCard";
-import useCartStore from "@/stores/useCartStore";
-import useWishlistStore from "@/stores/useWishlistStore";
 
 const Slider = ({ data }) => {
-  const {
-    cart,
-    fetchCart,
-    addProduct,
-    removeProduct,
-    updateProductQuantity,
-    loading: carLoading,
-    error,
-  } = useCartStore();
+  if (!data || data.length === 0) return null;
 
-  const {
-    wishlist,
-    fetchWishlist,
-    addProductToWishlist,
-    removeProductFromWishlist,
-    loading: wishListLoading,
-    // error,
-  } = useWishlistStore();
-
-  useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
-
-  const handleAddToCart = async (productId, quantity = 1) => {
-    await addProduct(productId, quantity);
-    fetchCart();
-
-    // alert(12)
-  };
-
-  const handleRemoveFromCart = async (productId) => {
-    await removeProduct(productId);
-    fetchCart();
-  };
-
-  useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
-
-  const handleAddToWishlist = async (productId) => {
-    await addProductToWishlist(productId);
-    fetchWishlist();
-  };
-
-  const handleRemoveFromWishlist = async (productId) => {
-    await removeProductFromWishlist(productId);
-    fetchWishlist();
-  };
   return (
-    <div className="flex justify-start items-center overflow-x-auto gap-20 p-8 w-[99vw]">
-      {data?.map((value) => (
-        <ProductCard
-          key={value?._id}
-          detail={value}
-          cart={cart}
-          wishlist={wishlist}
-          handleAddToCart={handleAddToCart}
-          handleRemoveFromCart={handleRemoveFromCart}
-          handleAddToWishlist={handleAddToWishlist}
-          handleRemoveFromWishlist={handleRemoveFromWishlist}
-          carLoading={carLoading}
-          wishListLoading={wishListLoading}
-        />
-      ))}
+    <div className="w-full overflow-x-auto scrollbar-none py-4">
+      <div className="flex gap-6 min-w-max px-4 sm:px-6">
+        {data.map((item) => (
+          <ProductCard
+            key={item?._id}
+            detail={item}
+            className="w-64 sm:w-72 flex-shrink-0"
+          />
+        ))}
+      </div>
     </div>
   );
 };

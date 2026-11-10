@@ -1,19 +1,25 @@
 "use client";
+
+import React from "react";
 import Loader from "@/components/loader";
 import useProtectedRoute from "@/hooks/useProtectedRoute";
-import React from "react";
 import DashboardSidebar from "./_components/dashboard-sidebar";
 
 const DashboardLayout = ({ children }) => {
   const { user, loading } = useProtectedRoute();
 
   if (loading) {
-    return <Loader />;
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <Loader />
+      </div>
+    );
   }
+
   return (
-    <div className="  h-full w-full flex ">
+    <div className="min-h-[calc(100vh-5rem)] w-full flex flex-col md:flex-row bg-[#fafafa]">
       <DashboardSidebar />
-      <div className=" w-full h-full overflow-y-auto pt-16 p-2 md:pt-0 xl:p-10 ">
+      <div className="flex-1 w-full pt-14 md:pt-0 p-4 sm:p-8 lg:p-10 overflow-y-auto">
         {children}
       </div>
     </div>

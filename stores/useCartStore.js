@@ -3,7 +3,7 @@ import axios from "axios";
 import { server } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 
-const useCartStore = create((set) => ({
+const useCartStore = create((set, get) => ({
   cart: [],
   loading: false,
   error: null,
@@ -15,21 +15,25 @@ const useCartStore = create((set) => ({
       const { data } = await axios.get(`${server}/auth/cart`, {
         withCredentials: true,
       });
-      if (data.success) {
-        set({ cart: data.cart, loading: false });
+      if (data?.success) {
+        set({ cart: data.cart || [], loading: false });
       }
     } catch (error) {
-      set({ loading: false, error: "Login to view your cart" });
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.response?.data?.message || "Failed to fetch cart",
-      });
+      set({ loading: false, error: "Unable to load cart" });
+      // Do not popup error toast on passive load for unauthenticated visitors
     }
   },
 
   // Add product with variant to the cart
   addProduct: async (productId, variantId, quantity = 1) => {
+    if (!productId || !variantId) {
+      toast({
+        variant: "destructive",
+        title: "Please select a size / color first",
+      });
+      return Promise.reject(new Error("Missing variant"));
+    }
+
     set({ loading: true, error: null });
     try {
       const { data } = await axios.post(
@@ -37,27 +41,24 @@ const useCartStore = create((set) => ({
         { productId, variantId, quantity },
         { withCredentials: true }
       );
-      if (data.success) {
+      if (data?.success) {
         toast({
           variant: "success",
-          title: "Success",
-          description: data.message || "Added to cart successfully",
+          title: "Added to Cart",
+          description: data.message || "Item added to your shopping bag",
         });
-        // Update cart state with the new cart data
-        set((state) => ({
-          cart: [...state.cart, data.cartItem],
-          loading: false,
-        }));
+        await get().fetchCart();
+        set({ loading: false });
         return Promise.resolve();
       }
     } catch (error) {
+      const msg = error?.response?.data?.message || "Failed to add product to cart";
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          error?.response?.data?.message || "Failed to add product to cart",
+        title: "Could not add to cart",
+        description: msg,
       });
-      set({ loading: false, error: "Failed to add product to cart" });
+      set({ loading: false, error: msg });
       return Promise.reject(error);
     }
   },
@@ -71,38 +72,38 @@ const useCartStore = create((set) => ({
         { productId, variantId },
         { withCredentials: true }
       );
-      if (data.success) {
+      if (data?.success) {
         toast({
           variant: "success",
-          title: "Success",
-          description: data.message || "Removed from cart successfully",
+          title: "Item Removed",
+          description: "Removed from your shopping bag",
         });
+        // Optimistically update
         set((state) => ({
-          cart: state.cart.filter(
-            (item) =>
-              !(
-                item.product._id === productId && item.variant._id === variantId
-              )
-          ),
+          cart: state.cart.filter((item) => {
+            const pId = item?.product?._id || item?.product;
+            const vId = item?.variant?._id || item?.variant;
+            return !(pId === productId && vId === variantId);
+          }),
           loading: false,
         }));
         return Promise.resolve();
       }
     } catch (error) {
+      const msg = error?.response?.data?.message || "Failed to remove item";
       toast({
         variant: "destructive",
         title: "Error",
-        description:
-          error?.response?.data?.message ||
-          "Failed to remove product from cart",
+        description: msg,
       });
-      set({ loading: false, error: "Failed to remove product from cart" });
+      set({ loading: false, error: msg });
       return Promise.reject(error);
     }
   },
 
   // Update product variant quantity in the cart
   updateProductQuantity: async (productId, variantId, quantity) => {
+    if (quantity < 1) return;
     set({ loading: true, error: null });
     try {
       const { data } = await axios.put(
@@ -110,57 +111,36 @@ const useCartStore = create((set) => ({
         { productId, variantId, quantity },
         { withCredentials: true }
       );
-      if (data.success) {
-        // Immediately update the cart state
+      if (data?.success) {
         set((state) => ({
-          cart: state.cart.map((item) =>
-            item.product._id === productId
-              ? { ...item, quantity: quantity }
-              : item
-          ),
+          cart: state.cart.map((item) => {
+            const pId = item?.product?._id || item?.product;
+            const vId = item?.variant?._id || item?.variant;
+            return pId === productId && vId === variantId
+              ? { ...item, quantity }
+              : item;
+          }),
           loading: false,
         }));
-        toast({
-          variant: "success",
-          title: "Success",
-          description: data.message || "Product quantity updated successfully",
-        });
         return Promise.resolve(data);
       }
     } catch (error) {
+      const msg = error?.response?.data?.message || "Failed to update quantity";
       toast({
         variant: "destructive",
         title: "Error",
-        description:
-          error?.response?.data?.message || "Failed to update product quantity",
+        description: msg,
       });
-      set({ loading: false, error: "Failed to update product quantity" });
+      set({ loading: false, error: msg });
       return Promise.reject(error);
     }
   },
 
-  // Calculate cart totals
-  getCartTotals: () => {
-    return set((state) => {
-      const totals = state.cart.reduce(
-        (acc, item) => {
-          const itemTotal = item.quantity * item.variant.price;
-          return {
-            totalItems: acc.totalItems + item.quantity,
-            totalAmount: acc.totalAmount + itemTotal,
-          };
-        },
-        { totalItems: 0, totalAmount: 0 }
-      );
-      return { cartTotals: totals };
-    });
-  },
-
-  // Set cart state manually
-  setCart: (cart) => set({ cart }),
-
   // Clear cart
   clearCart: () => set({ cart: [] }),
+
+  // Set cart manually
+  setCart: (cart) => set({ cart }),
 }));
 
 export default useCartStore;

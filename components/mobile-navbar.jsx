@@ -1,317 +1,178 @@
 "use client";
-import Image from "next/image";
-import {
-  ArrowBigLeftDash,
-  Heart,
-  Menu,
-  Search,
-  ShoppingCart,
-  X,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { Button } from "./ui/button";
+
+import React from "react";
 import Link from "next/link";
-import clsx from "clsx";
-import axios from "axios";
-import { toast } from "./ui/use-toast";
+import { useRouter } from "next/navigation";
+import { X, User, ShoppingBag, Heart, Package, Headphones, LogOut, LogIn } from "lucide-react";
 import useAuthStore from "@/stores/useAuthStore";
+import axios from "axios";
 import { server } from "@/lib/utils";
-import SearchBar from "./search-bar";
+import { toast } from "./ui/use-toast";
+import clsx from "clsx";
 
-const MobileNavbar = ({ links, navLinksDropDown }) => {
-  const setUser = useAuthStore((state) => state.setUser);
-  const user = useAuthStore((state) => state.user);
+const MobileNavbar = ({ isOpen, onClose, links = [] }) => {
   const router = useRouter();
-  const [hoveredLink, setHoveredLink] = useState("");
-  const [isMobileMenu, setIsMobileMenu] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [isSearchClicked, setIsSearchClicked] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
 
-  const logoutHandler = async () => {
+  if (!isOpen) return null;
+
+  const handleLogout = async () => {
     try {
-      const { data } = await axios.get(`${server}/auth/logout`, {
-        withCredentials: true,
-      });
-      if (data?.success) {
-        setUser(null);
-        router.push("/");
-        setIsMobileMenu(false);
-        setIsModalOpen(false);
-        toast({
-          title: "Logged out successfully",
-        });
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error logging out" + error,
-      });
+      await axios.get(`${server}/auth/logout`, { withCredentials: true });
+      setUser(null);
+      toast({ title: "Logged out successfully" });
+      onClose();
+      router.push("/login");
+    } catch {
+      setUser(null);
+      onClose();
+      router.push("/login");
     }
   };
 
-  useEffect(() => {
-    if (isSearchClicked) return;
-  }, [isSearchClicked]);
-
-  const handleSearchClick = () => {
-    setIsSearchClicked(true);
+  const navigateTo = (path) => {
+    router.push(path);
+    onClose();
   };
 
   return (
-    <div className="xl:hidden sticky flex flex-col ">
-      <div className="  flex justify-between items-center w-full p-4 bg-neutral-900 z-10">
-        {/* Logog */}
-        <Image
-          src="/puma-logo.svg"
-          alt="Brand Logo"
-          className="h-12 w-12 text-neutral-200 cursor-pointer"
-          onClick={() => router.push("/")}
-          width={48} // Specify the width of the image
-          height={48} // Specify the height of the image
-        />
-        <div className=" flex  gap-6 justify-end items-center ">
-          {/* search */}
+    <div className="fixed inset-0 z-50 md:hidden">
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+      />
 
-          <Search
-            color="white"
-            width={30}
-            height={30}
-            className={clsx(
-              "hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer text-white block xl:hidden ",
-              {
-                "absolute hidden h-full w-full left-0 top-0 right-10 bg-black xl:block transition-all duration-300":
-                  isSearchClicked,
-              }
-            )}
-            onClick={handleSearchClick}
-          />
+      {/* Drawer */}
+      <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-left duration-300">
+        <div>
+          {/* Header */}
+          <div className="flex items-center justify-between pb-6 border-b border-neutral-100">
+            <span className="font-mono text-xl font-black tracking-widest text-neutral-950 uppercase">
+              ATELIER
+            </span>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full text-neutral-400 hover:text-black hover:bg-neutral-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-          <SearchBar
-            setIsSearchClicked={setIsSearchClicked}
-            className={{
-              "absolute h-full w-full left-0 top-0 right-10 bg-black transition-all duration-300 z-20":
-                isSearchClicked,
-              hidden: !isSearchClicked,
-            }}
-          />
-
-          <Heart
-            color="white"
-            width={30}
-            height={30}
-            className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
-            onClick={() => router.push("/dashboard/wishlist")}
-          />
-          <ShoppingCart
-            color="white"
-            width={30}
-            height={30}
-            className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
-            onClick={() => router.push("/dashboard/cart")}
-          />
-
-          {!isMobileMenu ? (
-            <Menu
-              color="white"
-              width={30}
-              height={30}
-              className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
-              onClick={() => {
-                setIsModalOpen(true);
-                setIsMobileMenu(true);
-              }}
-            />
+          {/* User info if logged in */}
+          {user ? (
+            <div className="py-4 px-3 my-4 bg-neutral-50 rounded-xl">
+              <p className="text-xs uppercase tracking-wider text-neutral-400 font-semibold">
+                Signed in as
+              </p>
+              <p className="text-sm font-bold text-neutral-900 truncate">
+                {user.firstName} {user.lastName}
+              </p>
+              <p className="text-xs text-neutral-500 truncate">{user.email}</p>
+            </div>
           ) : (
-            <X
-              color="white"
-              width={30}
-              height={30}
-              className=" hover:rounded-full hover:bg-neutral-500 px-2 cursor-pointer"
-              onClick={() => {
-                setIsModalOpen(false);
-                setIsMobileMenu(false);
-              }}
-            />
+            <div className="py-4 my-2 flex gap-2">
+              <button
+                onClick={() => navigateTo("/login")}
+                className="flex-1 py-2 text-xs font-semibold bg-neutral-950 text-white rounded-lg hover:bg-black text-center"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => navigateTo("/signup")}
+                className="flex-1 py-2 text-xs font-semibold bg-neutral-100 text-neutral-800 rounded-lg hover:bg-neutral-200 text-center"
+              >
+                Register
+              </button>
+            </div>
+          )}
+
+          {/* Navigation Links */}
+          <nav className="py-4 space-y-1">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-3 py-1">
+              Shop Categories
+            </p>
+            {links.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={onClose}
+                className="block px-3 py-2.5 text-sm font-semibold text-neutral-800 hover:text-black hover:bg-neutral-50 rounded-lg transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <Link
+              href="/search"
+              onClick={onClose}
+              className="block px-3 py-2.5 text-sm font-semibold text-neutral-800 hover:text-black hover:bg-neutral-50 rounded-lg transition-colors"
+            >
+              Explore All Styles
+            </Link>
+          </nav>
+
+          {/* Account shortcuts */}
+          {user && (
+            <div className="py-4 border-t border-neutral-100 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 px-3 py-1">
+                Account
+              </p>
+              <button
+                onClick={() => navigateTo("/dashboard")}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg"
+              >
+                <User className="w-4 h-4 text-neutral-400" />
+                <span>My Profile</span>
+              </button>
+              <button
+                onClick={() => navigateTo("/dashboard/orders")}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg"
+              >
+                <Package className="w-4 h-4 text-neutral-400" />
+                <span>Orders & Tracking</span>
+              </button>
+              <button
+                onClick={() => navigateTo("/dashboard/wishlist")}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg"
+              >
+                <Heart className="w-4 h-4 text-neutral-400" />
+                <span>Wishlist</span>
+              </button>
+              <button
+                onClick={() => navigateTo("/dashboard/cart")}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg"
+              >
+                <ShoppingBag className="w-4 h-4 text-neutral-400" />
+                <span>Shopping Bag</span>
+              </button>
+              <button
+                onClick={() => navigateTo("/dashboard/contact")}
+                className="w-full flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 rounded-lg"
+              >
+                <Headphones className="w-4 h-4 text-neutral-400" />
+                <span>Helpline</span>
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Footer actions */}
+        <div className="pt-6 border-t border-neutral-100">
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+          )}
+          <p className="text-[11px] text-neutral-400 text-center mt-4">
+            © {new Date().getFullYear()} STUDIO ATELIER
+          </p>
+        </div>
       </div>
-      {/* Modal */}
-      <div
-        className={`duration-500 transition-all  w-[70vw] ${
-          !isModalOpen ? "translate-y-[-100%]" : "translate-y-[0]"
-        }`}
-      >
-        {isModalOpen && (
-          <>
-            <div className=" overflow-x-hidden top-0 left-0 absolute  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center pt-24">
-              {/* Categories */}
-              <div className=" flex flex-col justify-between items-center h-full">
-                <div className=" flex flex-col justify-around gap-5">
-                  {links.map(({ text, key }) => (
-                    <div className="relative" key={key}>
-                      <Link
-                        href={""}
-                        className={clsx(
-                          "text-black font-semibold relative flex flex-col text-nowrap",
-                          {
-                            "group-hover:text-white/50":
-                              hoveredLink.toLowerCase() !== key.toLowerCase(),
-                          }
-                        )}
-                        onMouseEnter={() => setHoveredLink(key)}
-                        onMouseLeave={() => setHoveredLink("")}
-                      >
-                        {text}
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-                <div className=" w-full flex gap-3 justify-center items-center p-10">
-                  {!user ? (
-                    <>
-                      <Button
-                        className="px-10"
-                        onClick={() => {
-                          router.push("/login");
-                          setIsMobileMenu(false);
-                          setIsModalOpen(false);
-                        }}
-                      >
-                        Login
-                      </Button>
-                      <Button
-                        className="px-10"
-                        onClick={() => {
-                          router.push("/signup");
-                          setIsMobileMenu(false);
-                          setIsModalOpen(false);
-                        }}
-                      >
-                        Signup
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        className="px-10"
-                        onClick={() => {
-                          router.push("/dashboard");
-                          setIsMobileMenu(false);
-                          setIsModalOpen(false);
-                        }}
-                      >
-                        Account
-                      </Button>
-                      <Button
-                        className="px-10"
-                        onClick={logoutHandler}
-                        variant="destructive"
-                      >
-                        Logout
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-            {/* Sub categories */}
-            {navLinksDropDown?.map(
-              (item) =>
-                hoveredLink.toLowerCase() === item.category.toLowerCase() && (
-                  <div
-                    key={item?.category}
-                    className=" overflow-scroll scroll-smooth absolute  top-0 left-0  w-screen h-screen bg-[#eeecec] flex flex-col justify-start items-center p-10 pt-24"
-                    onMouseEnter={() => {
-                      setHoveredLink(item?.category);
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredLink("");
-                    }}
-                  >
-                    <div
-                      className=" fixed left-0 pl-2 flex gap-2 cursor-pointer justify-center items-center   z-[1000] "
-                      onClick={() => setHoveredLink("")}
-                    >
-                      <ArrowBigLeftDash />
-                      <p className="text-neutral-60 font-bold">Go Back</p>
-                    </div>
-                    <div className=" flex flex-col gap-5  cursor-pointer  w-full ">
-                      {item?.rightSide?.map((rightSideItem) => (
-                        <div
-                          key={rightSideItem?.title}
-                          className=" flex flex-col justify-start items-center gap-2"
-                        >
-                          {!rightSideItem?.isSubSection ? (
-                            <div className=" flex flex-col justify-start items-center gap-2">
-                              {rightSideItem?.title && (
-                                <h1 className="w-full text-nowrap font-semibold text-xl text-black hover:text-[#8a7350] border-b-2 border-black">
-                                  {rightSideItem?.title.toString()}
-                                </h1>
-                              )}
-                              <ul className="flex flex-col justify-start items-start gap-3">
-                                {rightSideItem?.values?.map(
-                                  (rightSideItemValues) => (
-                                    <li
-                                      key={rightSideItemValues}
-                                      className="text-base text-nowrap hover:text-[#1e170d] text-[#6b5b42]"
-                                    >
-                                      {rightSideItemValues.toString()}
-                                    </li>
-                                  )
-                                )}
-                              </ul>
-                            </div>
-                          ) : (
-                            <div className=" flex flex-col justify-start items-start gap-2">
-                              {rightSideItem?.title && (
-                                <h1 className=" text-nowrap w-full font-semibold text-xl text-black hover:text-[#8a7350] border-b-2 border-black">
-                                  {rightSideItem?.title.toString()}
-                                </h1>
-                              )}
-                              {rightSideItem?.values?.map(
-                                (rightSideItemValues) => (
-                                  <>
-                                    <h1
-                                      key={rightSideItemValues}
-                                      className="w-full  cursor-pointer font-bold hover:text-[#8a7350] text-[#6b5b42]"
-                                    >
-                                      {rightSideItemValues?.title}
-                                    </h1>
-                                    {rightSideItemValues?.values.map(
-                                      (rightSideItemValuesSubSection) => (
-                                        <p
-                                          key={rightSideItemValuesSubSection}
-                                          className="  hover:text-[#1e170d] text-[#6b5b42]"
-                                        >
-                                          {rightSideItemValuesSubSection}
-                                        </p>
-                                      )
-                                    )}
-                                  </>
-                                )
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-            )}
-          </>
-        )}
-      </div>
-      <span
-        className={clsx(
-          "absolute w-screen h-screen bg-white/30 backdrop-blur-sm top-0 left-0",
-          {
-            hidden: !isSearchClicked,
-          }
-        )}
-        onClick={() => setIsSearchClicked(false)}
-      ></span>
     </div>
   );
 };

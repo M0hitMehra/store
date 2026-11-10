@@ -1,199 +1,359 @@
 "use client";
-import { Button } from "@/components/ui/button";
+
+import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState, useRef } from "react";
-import { Separator } from "@/components/ui/separator";
-import { server } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 import axios from "axios";
-import Loader from "@/components/loader";
+import { Eye, EyeOff, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import { server } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 import useAuthStore from "@/stores/useAuthStore";
-import { EyeIcon, EyeOff } from "lucide-react";
+import useProtectedRoute from "@/hooks/useProtectedRoute";
+import Loader from "@/components/loader";
 
-const Signup = () => {
+export default function SignupPage() {
   const router = useRouter();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeInput, setActiveInput] = useState(null);
-
-  const emailRef = useRef(null);
-  const passwordRef = useRef(null);
-
-  const { toast } = useToast();
-  const user = useAuthStore((state) => state.user);
-  const loading = useAuthStore((state) => state.loading);
+  const { user, loading: authLoading } = useProtectedRoute();
   const setUser = useAuthStore((state) => state.setUser);
 
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    password: "",
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // OTP Verification Dialog state
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (user && !showOtpDialog) {
+    router.replace("/dashboard");
+    return null;
+  }
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  const onSubmit = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
+    setError("");
+
     if (
-      !firstName ||
-      !lastName ||
-      !validateEmail(email) ||
-      password.length < 8
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.password ||
+      !formData.phone ||
+      !formData.dateOfBirth
     ) {
-      setError("Please fill all fields correctly.");
+      setError("Please fill in all required fields.");
       return;
     }
-    setError("");
-    setIsLoading(true);
 
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    if (formData.phone.length < 10) {
+      setError("Please enter a valid 10-digit phone number.");
+      return;
+    }
+
+    setLoading(true);
     try {
       const { data } = await axios.post(
         `${server}/auth/register`,
+        formData,
         {
-          firstName,
-          lastName,
-          email,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true, // Include this line
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
         }
       );
+
       if (data?.success) {
         setUser(data.user);
-
-        setIsLoading(false);
         toast({
-          title: "Signed up successfully",
-          description: `Welcome to the designer store ${data?.user?.firstName}`,
+          variant: "success",
+          title: "Account Created!",
+          description: "An OTP has been sent to your email for verification.",
         });
-        setTimeout(() => {
-          toast({
-            variant: "warning",
-            title: "Attention needed!",
-            description: `${data?.user?.firstName} please verify your email either account will be deleted after 24 hours`,
-          });
-        }, 5000);
-        router.replace("/dashboard");
+        setShowOtpDialog(true);
       }
-    } catch (error) {
-      setIsLoading(false);
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: error?.response?.data?.message,
-      });
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          "Signup failed. Please check your information and try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) {
-    return <Loader />;
-  }
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otpValue || otpValue.length < 4) {
+      toast({
+        variant: "destructive",
+        title: "Please enter the OTP sent to your email",
+      });
+      return;
+    }
 
-  if (user) {
-    router.push("/dashboard");
-  }
-
-  const handlePasswordVisibility = () => {
-    setPasswordVisible(!passwordVisible);
-    setTimeout(() => {
-      if (activeInput === "password" && passwordRef.current) {
-        passwordRef.current.focus();
-        passwordRef.current.setSelectionRange(password.length, password.length);
+    setVerifyingOtp(true);
+    try {
+      const { data } = await axios.post(
+        `${server}/auth/verify`,
+        { otp: Number(otpValue) },
+        { withCredentials: true }
+      );
+      if (data?.success) {
+        setUser(data.user);
+        toast({
+          variant: "success",
+          title: "Account Verified!",
+          description: "Welcome to STUDIO ATELIER.",
+        });
+        router.push("/dashboard");
       }
-    }, 0);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Verification Failed",
+        description: err?.response?.data?.message || "Invalid or expired OTP",
+      });
+    } finally {
+      setVerifyingOtp(false);
+    }
   };
 
   return (
-    <div className="h-screen w-screen flex justify-center items-center bg-gray-100 fixed pb-10">
-      <div className="flex flex-col items-center bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h1 className="text-3xl font-semibold mb-4">Signup</h1>
-        <Separator />
-        <form onSubmit={onSubmit} className="flex flex-col w-full mt-4">
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            onFocus={() => setActiveInput("firstName")}
-            className="w-full p-3 border rounded mt-4"
-            placeholder="Enter your first name"
-            aria-label="First Name"
-          />
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            onFocus={() => setActiveInput("lastName")}
-            className="w-full p-3 border rounded mt-4"
-            placeholder="Enter your last name"
-            aria-label="Last Name"
-          />
-          <input
-            type="email"
-            ref={emailRef}
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setError("");
-            }}
-            onFocus={() => setActiveInput("email")}
-            className="w-full p-3 border rounded mt-4"
-            placeholder="Enter your email"
-            aria-label="Email"
-          />
-          <div className="relative w-full mt-4">
-            <input
-              type={passwordVisible ? "text" : "password"}
-              ref={passwordRef}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError("");
-              }}
-              onFocus={() => setActiveInput("password")}
-              className="w-full p-3 border rounded pr-10"
-              placeholder="Enter your password"
-              aria-label="Password"
-            />
-            {passwordVisible ? (
-              <EyeIcon
-                onClick={handlePasswordVisibility}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 cursor-pointer w-5"
-              />
-            ) : (
-              <EyeOff
-                onClick={handlePasswordVisibility}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 cursor-pointer w-5"
-              />
-            )}
-          </div>
-          {error && <span className="text-red-500 text-sm mt-2">{error}</span>}
-          <Button
-            className="w-full bg-black text-white font-semibold py-3 rounded mt-6"
-            disabled={isLoading}
-            type="submit"
-          >
-            {isLoading ? "Signing up..." : "Signup"}
-          </Button>
-        </form>
-        <span className="text-sm font-light mt-6">
-          Already have an account?{" "}
-          <span
-            className="text-sm font-medium text-blue-500 cursor-pointer"
-            onClick={() => router.push("/login")}
-          >
-            Login here
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md bg-white border border-neutral-200 rounded-3xl p-8 sm:p-10 shadow-lg space-y-8">
+        {/* Title */}
+        <div className="space-y-2 text-center">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold">
+            Member Registration
           </span>
-        </span>
+          <h1 className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-neutral-900 uppercase">
+            Create Account
+          </h1>
+          <p className="text-xs text-neutral-500">
+            Join STUDIO ATELIER for exclusive drops & tailored sizing.
+          </p>
+        </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 font-medium">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSignup} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] font-semibold text-neutral-700">
+                First Name *
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                required
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="First name"
+                className="w-full p-3 text-xs bg-neutral-50 border border-neutral-200 rounded-xl mt-1 focus:outline-none focus:border-neutral-500"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-neutral-700">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                required
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Last name"
+                className="w-full p-3 text-xs bg-neutral-50 border border-neutral-200 rounded-xl mt-1 focus:outline-none focus:border-neutral-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-semibold text-neutral-700">
+              Email Address *
+            </label>
+            <input
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@domain.com"
+              className="w-full p-3 text-xs bg-neutral-50 border border-neutral-200 rounded-xl mt-1 focus:outline-none focus:border-neutral-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] font-semibold text-neutral-700">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="10-digit number"
+                className="w-full p-3 text-xs bg-neutral-50 border border-neutral-200 rounded-xl mt-1 focus:outline-none focus:border-neutral-500 font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-neutral-700">
+                Date of Birth *
+              </label>
+              <input
+                type="date"
+                name="dateOfBirth"
+                required
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+                className="w-full p-3 text-xs bg-neutral-50 border border-neutral-200 rounded-xl mt-1 focus:outline-none focus:border-neutral-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-semibold text-neutral-700">
+              Password (min. 8 chars) *
+            </label>
+            <div className="relative mt-1">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                className="w-full p-3 pr-10 text-xs bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-neutral-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 bg-neutral-950 text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 mt-2"
+          >
+            {loading ? "Registering..." : "Create Account"}
+          </button>
+        </form>
+
+        {/* Footer Link */}
+        <div className="text-center pt-2">
+          <p className="text-xs text-neutral-500">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-bold text-neutral-950 underline hover:text-black"
+            >
+              Sign In
+            </Link>
+          </p>
+        </div>
       </div>
+
+      {/* Immediate OTP Verification Dialog */}
+      {showOtpDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-md rounded-3xl p-8 space-y-6 shadow-2xl border border-neutral-100 text-center">
+            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-full">
+                Step 2 of 2
+              </span>
+              <h3 className="text-xl font-black font-mono uppercase text-neutral-900 mt-2">
+                Verify Your Account
+              </h3>
+              <p className="text-xs text-neutral-500">
+                We sent an OTP to{" "}
+                <span className="font-bold text-neutral-900 font-mono">
+                  {formData.email}
+                </span>
+                . Enter it below to activate your account.
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <input
+                type="text"
+                maxLength={6}
+                autoFocus
+                required
+                value={otpValue}
+                onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ""))}
+                placeholder="123456"
+                className="w-full text-center tracking-[0.5em] text-2xl font-mono p-3.5 bg-neutral-50 border border-neutral-200 rounded-2xl focus:outline-none focus:border-neutral-500 font-bold"
+              />
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOtpDialog(false);
+                    router.push("/dashboard");
+                  }}
+                  className="flex-1 py-3 bg-neutral-100 text-neutral-700 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-neutral-200"
+                >
+                  Verify Later
+                </button>
+                <button
+                  type="submit"
+                  disabled={verifyingOtp}
+                  className="flex-1 py-3 bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-black transition-colors disabled:opacity-50"
+                >
+                  {verifyingOtp ? "Verifying..." : "Verify & Continue"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default Signup;
+}

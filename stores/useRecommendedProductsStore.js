@@ -1,15 +1,15 @@
 import { create } from "zustand";
 import axios from "axios";
 import { server } from "@/lib/utils";
-import { toast } from "@/components/ui/use-toast";
 
 const useRecommendedProductsStore = create((set) => ({
   recommendedProducts: [],
   loading: false,
   error: null,
 
-  // Fetch the useRecommendedProductsStore from the server
+  // Fetch recommended products from the server
   getRecommendationProduct: async (userId) => {
+    if (!userId) return;
     set({ loading: true, error: null });
     try {
       const { data } = await axios.get(
@@ -19,18 +19,15 @@ const useRecommendedProductsStore = create((set) => ({
         }
       );
 
-       if (data.success) {
-        set({ recommendedProducts: data?.recommendedProducts, loading: false });
+      if (data?.success) {
+        set({
+          recommendedProducts: data.recommendedProducts || [],
+          loading: false,
+        });
       }
     } catch (error) {
-      set({ loading: false, error: "" });
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description:
-          error?.response?.data?.message ||
-          "Sorry the error is on our side. Please try again later",
-      });
+      set({ loading: false, error: error?.message });
+      // Suppress noisy toast for recommendations
     }
   },
 }));

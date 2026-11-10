@@ -3,7 +3,7 @@ import axios from "axios";
 import { server } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 
-const useWishlistStore = create((set) => ({
+const useWishlistStore = create((set, get) => ({
   wishlist: [],
   loading: false,
   error: null,
@@ -14,9 +14,12 @@ const useWishlistStore = create((set) => ({
       const { data } = await axios.get(`${server}/auth/wishlist`, {
         withCredentials: true,
       });
-      set({ wishlist: data.wishlist, loading: false });
+      if (data?.success) {
+        set({ wishlist: data.wishlist || [], loading: false });
+      }
     } catch (error) {
-       set({ loading: false, error: error.message });
+      set({ loading: false, error: error?.message });
+      // Do not popup error toast on passive load for unauthenticated visitors
     }
   },
 
@@ -29,21 +32,24 @@ const useWishlistStore = create((set) => ({
         { withCredentials: true }
       );
       if (data?.success) {
-        set((state) => ({
-          wishlist: [...state.wishlist, data.product],
-          loading: false,
-        }));
         toast({
           variant: "success",
-          title: "Added to wishlist successfully",
+          title: "Added to Wishlist",
+          description: "Product saved to your wishlist",
         });
+        await get().fetchWishlist();
+        set({ loading: false });
+        return Promise.resolve();
       }
     } catch (error) {
-       set({ loading: false, error: error.message });
+      const msg = error?.response?.data?.message || "Failed to add to wishlist";
+      set({ loading: false, error: msg });
       toast({
         variant: "destructive",
-        title: error?.response?.data?.message,
+        title: "Wishlist Error",
+        description: msg,
       });
+      return Promise.reject(error);
     }
   },
 
@@ -56,23 +62,27 @@ const useWishlistStore = create((set) => ({
       );
       if (data?.success) {
         set((state) => ({
-          wishlist: state.wishlist.filter(
-            (product) => product._id !== productId
-          ),
+          wishlist: state.wishlist.filter((item) => {
+            const pId = item?.product?._id || item?.product;
+            return pId !== productId;
+          }),
           loading: false,
         }));
         toast({
           variant: "success",
-          title: "Removed from wishlist successfully",
+          title: "Removed from Wishlist",
         });
+        return Promise.resolve();
       }
     } catch (error) {
-      error("Failed to remove product from wishlist:", error);
-      set({ loading: false, error: error.message });
+      const msg = error?.response?.data?.message || "Failed to remove from wishlist";
+      set({ loading: false, error: msg });
       toast({
         variant: "destructive",
-        title: error?.response?.data?.message,
+        title: "Error",
+        description: msg,
       });
+      return Promise.reject(error);
     }
   },
 
