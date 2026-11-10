@@ -21,7 +21,9 @@ export default function Home() {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const { data } = await axios.get(`${server}/products?limit=8`);
+        const { data } = await axios.get(
+          `${server}/products?limit=8&sort=createdAt&order=desc`
+        );
         if (data?.success) {
           setProducts(data.products || []);
         }
