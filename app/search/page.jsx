@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, Suspense } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { server, formatPrice } from "@/lib/utils";
+import { server } from "@/lib/utils";
 import ProductCard from "@/components/productCard";
 import ComponentLoader from "@/components/component-loader";
 import { useDebounce } from "use-debounce";
@@ -11,9 +11,9 @@ import {
   Search as SearchIcon,
   Filter,
   X,
-  SlidersHorizontal,
   RotateCcw,
   AlertCircle,
+  Check,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -21,22 +21,45 @@ function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Filters state initialized from URL params
+  // Search input state
   const [searchTerm, setSearchTerm] = useState(
     searchParams.get("query") || searchParams.get("search") || ""
   );
   const [debouncedSearch] = useDebounce(searchTerm, 350);
 
+  // Category and Brand (single selection)
   const [category, setCategory] = useState(searchParams.get("category") || "");
   const [brand, setBrand] = useState(searchParams.get("brand") || "");
-  const [selectedColor, setSelectedColor] = useState(
-    searchParams.get("color") || searchParams.get("colors") || ""
-  );
-  const [selectedSize, setSelectedSize] = useState(
-    searchParams.get("size") || searchParams.get("sizes") || ""
-  );
+
+  // Multiple Colors selection (array of color IDs)
+  const [selectedColors, setSelectedColors] = useState(() => {
+    const raw = searchParams.getAll("colors").length
+      ? searchParams.getAll("colors")
+      : searchParams.getAll("color");
+    if (raw.length > 0) {
+      return raw.flatMap((item) => item.split(",")).filter(Boolean);
+    }
+    const single = searchParams.get("colors") || searchParams.get("color");
+    return single ? single.split(",").filter(Boolean) : [];
+  });
+
+  // Multiple Sizes selection (array of size IDs)
+  const [selectedSizes, setSelectedSizes] = useState(() => {
+    const raw = searchParams.getAll("sizes").length
+      ? searchParams.getAll("sizes")
+      : searchParams.getAll("size");
+    if (raw.length > 0) {
+      return raw.flatMap((item) => item.split(",")).filter(Boolean);
+    }
+    const single = searchParams.get("sizes") || searchParams.get("size");
+    return single ? single.split(",").filter(Boolean) : [];
+  });
+
+  // Price range
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
+
+  // Sorting and pagination
   const [sort, setSort] = useState(searchParams.get("sort") || "createdAt");
   const [order, setOrder] = useState(searchParams.get("order") || "desc");
   const [page, setPage] = useState(1);
@@ -52,26 +75,66 @@ function SearchContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Limit per page (9 products = 3x3 grid)
+  // Limit per page (9 products = 3x3 grid matching backend default)
   const limit = 9;
 
-  // Sync state with URL params when they change externally
+  // Toggle color in selectedColors array
+  const toggleColor = (colorId) => {
+    setSelectedColors((prev) =>
+      prev.includes(colorId)
+        ? prev.filter((id) => id !== colorId)
+        : [...prev, colorId]
+    );
+    setPage(1);
+  };
+
+  // Toggle size in selectedSizes array
+  const toggleSize = (sizeId) => {
+    setSelectedSizes((prev) =>
+      prev.includes(sizeId)
+        ? prev.filter((id) => id !== sizeId)
+        : [...prev, sizeId]
+    );
+    setPage(1);
+  };
+
+  // Sync state with URL params when changed externally
   useEffect(() => {
     const q = searchParams.get("query") || searchParams.get("search") || "";
     const c = searchParams.get("category") || "";
     const b = searchParams.get("brand") || "";
-    const col = searchParams.get("color") || searchParams.get("colors") || "";
-    const sz = searchParams.get("size") || searchParams.get("sizes") || "";
     const s = searchParams.get("sort") || "createdAt";
     const ord = searchParams.get("order") || "desc";
+
+    const colRaw = searchParams.getAll("colors").length
+      ? searchParams.getAll("colors")
+      : searchParams.getAll("color");
+    const colList = colRaw.length
+      ? colRaw.flatMap((item) => item.split(",")).filter(Boolean)
+      : (searchParams.get("colors") || searchParams.get("color") || "")
+          .split(",")
+          .filter(Boolean);
+
+    const szRaw = searchParams.getAll("sizes").length
+      ? searchParams.getAll("sizes")
+      : searchParams.getAll("size");
+    const szList = szRaw.length
+      ? szRaw.flatMap((item) => item.split(",")).filter(Boolean)
+      : (searchParams.get("sizes") || searchParams.get("size") || "")
+          .split(",")
+          .filter(Boolean);
 
     if (q !== searchTerm) setSearchTerm(q);
     if (c !== category) setCategory(c);
     if (b !== brand) setBrand(b);
-    if (col !== selectedColor) setSelectedColor(col);
-    if (sz !== selectedSize) setSelectedSize(sz);
     if (s !== sort) setSort(s);
     if (ord !== order) setOrder(ord);
+    if (JSON.stringify(colList) !== JSON.stringify(selectedColors)) {
+      setSelectedColors(colList);
+    }
+    if (JSON.stringify(szList) !== JSON.stringify(selectedSizes)) {
+      setSelectedSizes(szList);
+    }
   }, [searchParams]);
 
   // Fetch filter metadata on mount
@@ -97,7 +160,7 @@ function SearchContent() {
     fetchFilters();
   }, []);
 
-  // Fetch products
+  // Fetch products from backend
   useEffect(() => {
     let isCancelled = false;
 
@@ -105,36 +168,76 @@ function SearchContent() {
       setLoading(true);
       try {
         const trimmedSearch = debouncedSearch.trim();
-        const hasVariantFilter = Boolean(
-          selectedColor || selectedSize || minPrice || maxPrice
-        );
+        const hasVariantFilter =
+          selectedColors.length > 0 ||
+          selectedSizes.length > 0 ||
+          minPrice !== "" ||
+          maxPrice !== "";
         const hasShortSearch =
           trimmedSearch.length > 0 && trimmedSearch.length < 3;
 
-        // If variant filters are active or search is < 3 characters,
-        // we fetch the full set matching category/brand from backend (limit=100)
-        // and filter by variants / short search client-side.
-        if (hasVariantFilter || hasShortSearch) {
-          const params = {
+        // Base query parameters sent to backend
+        const params = {
+          page,
+          limit,
+          sort,
+          order,
+        };
+
+        if (category) params.category = category;
+        if (brand) params.brand = brand;
+        if (trimmedSearch.length >= 3) {
+          params.search = trimmedSearch;
+        }
+
+        // Send multiple colors and sizes as arrays of IDs
+        if (selectedColors.length > 0) {
+          params.colors = selectedColors;
+        }
+        if (selectedSizes.length > 0) {
+          params.sizes = selectedSizes;
+        }
+        if (minPrice !== "") params.minPrice = minPrice;
+        if (maxPrice !== "") params.maxPrice = maxPrice;
+
+        // Request backend with paramsSerializer so colors and sizes arrays serialize cleanly
+        const { data } = await axios.get(`${server}/products`, {
+          params,
+          paramsSerializer: {
+            indexes: null, // serializes as colors=id1&colors=id2 or colors[]=id1
+          },
+        });
+
+        if (isCancelled) return;
+
+        // Check if backend returned products directly
+        if (data?.success && data?.products && data.products.length > 0) {
+          setProducts(data.products);
+          setTotalProducts(data.pagination?.total || data.products.length);
+          setTotalPages(data.pagination?.totalPages || 1);
+        } else if (hasVariantFilter || hasShortSearch) {
+          // If backend returns 0 products when variant filters are active
+          // (due to backend Stage 1 MongoDB $match aggregation on unpopulated variants),
+          // fallback to fetching category/brand products and filter locally by selected color/size arrays.
+          const fallbackParams = {
             page: 1,
             limit: 100,
             sort,
             order,
           };
+          if (category) fallbackParams.category = category;
+          if (brand) fallbackParams.brand = brand;
+          if (trimmedSearch.length >= 3) fallbackParams.search = trimmedSearch;
 
-          if (category) params.category = category;
-          if (brand) params.brand = brand;
-          if (trimmedSearch.length >= 3) {
-            params.search = trimmedSearch;
-          }
-
-          const { data } = await axios.get(`${server}/products`, { params });
+          const fbRes = await axios.get(`${server}/products`, {
+            params: fallbackParams,
+          });
           if (isCancelled) return;
 
-          if (data?.success) {
-            let list = data.products || [];
+          if (fbRes.data?.success) {
+            let list = fbRes.data.products || [];
 
-            // 1. Client-side short search filter (< 3 characters)
+            // Short search match
             if (hasShortSearch) {
               const term = trimmedSearch.toLowerCase();
               list = list.filter((p) => {
@@ -145,30 +248,35 @@ function SearchContent() {
               });
             }
 
-            // 2. Client-side Color filter
-            if (selectedColor) {
+            // Match ANY selected color ID in variants or product
+            if (selectedColors.length > 0) {
               list = list.filter((p) => {
-                const hasVariant = p.variants?.some(
-                  (v) => (v.color?._id || v.color) === selectedColor
+                const hasVariantColor = p.variants?.some((v) => {
+                  const id = v.color?._id || v.color;
+                  return selectedColors.includes(id);
+                });
+                const hasDirectColor = selectedColors.includes(
+                  p.color?._id || p.color
                 );
-                const hasDirect =
-                  (p.color?._id || p.color) === selectedColor;
-                return hasVariant || hasDirect;
+                return hasVariantColor || hasDirectColor;
               });
             }
 
-            // 3. Client-side Size filter
-            if (selectedSize) {
+            // Match ANY selected size ID in variants or product
+            if (selectedSizes.length > 0) {
               list = list.filter((p) => {
-                const hasVariant = p.variants?.some(
-                  (v) => (v.size?._id || v.size) === selectedSize
+                const hasVariantSize = p.variants?.some((v) => {
+                  const id = v.size?._id || v.size;
+                  return selectedSizes.includes(id);
+                });
+                const hasDirectSize = selectedSizes.includes(
+                  p.size?._id || p.size
                 );
-                const hasDirect = (p.size?._id || p.size) === selectedSize;
-                return hasVariant || hasDirect;
+                return hasVariantSize || hasDirectSize;
               });
             }
 
-            // 4. Client-side Min Price filter
+            // Min price filter
             if (minPrice !== "") {
               const min = Number(minPrice);
               if (!isNaN(min)) {
@@ -177,12 +285,15 @@ function SearchContent() {
                   const vMin = p.variants?.length
                     ? Math.min(...p.variants.map((v) => v.price || pPrice))
                     : pPrice;
-                  return vMin >= min || pPrice >= min;
+                  const vMax = p.variants?.length
+                    ? Math.max(...p.variants.map((v) => v.price || pPrice))
+                    : pPrice;
+                  return vMax >= min || pPrice >= min;
                 });
               }
             }
 
-            // 5. Client-side Max Price filter
+            // Max price filter
             if (maxPrice !== "") {
               const max = Number(maxPrice);
               if (!isNaN(max)) {
@@ -196,7 +307,6 @@ function SearchContent() {
               }
             }
 
-            // Compute pagination
             const total = list.length;
             const computedPages = Math.max(1, Math.ceil(total / limit));
             const currentPage = Math.min(page, computedPages);
@@ -208,28 +318,9 @@ function SearchContent() {
             setTotalPages(computedPages);
           }
         } else {
-          // Direct backend pagination for standard queries
-          const params = {
-            page,
-            limit,
-            sort,
-            order,
-          };
-
-          if (trimmedSearch.length >= 3) {
-            params.search = trimmedSearch;
-          }
-          if (category) params.category = category;
-          if (brand) params.brand = brand;
-
-          const { data } = await axios.get(`${server}/products`, { params });
-          if (isCancelled) return;
-
-          if (data?.success) {
-            setProducts(data.products || []);
-            setTotalProducts(data.pagination?.total || 0);
-            setTotalPages(data.pagination?.totalPages || 1);
-          }
+          setProducts([]);
+          setTotalProducts(0);
+          setTotalPages(1);
         }
       } catch (err) {
         if (!isCancelled) {
@@ -254,8 +345,8 @@ function SearchContent() {
     debouncedSearch,
     category,
     brand,
-    selectedColor,
-    selectedSize,
+    selectedColors,
+    selectedSizes,
     minPrice,
     maxPrice,
     sort,
@@ -267,8 +358,8 @@ function SearchContent() {
     setSearchTerm("");
     setCategory("");
     setBrand("");
-    setSelectedColor("");
-    setSelectedSize("");
+    setSelectedColors([]);
+    setSelectedSizes([]);
     setMinPrice("");
     setMaxPrice("");
     setSort("createdAt");
@@ -281,8 +372,8 @@ function SearchContent() {
     Boolean(searchTerm) ||
     Boolean(category) ||
     Boolean(brand) ||
-    Boolean(selectedColor) ||
-    Boolean(selectedSize) ||
+    selectedColors.length > 0 ||
+    selectedSizes.length > 0 ||
     Boolean(minPrice) ||
     Boolean(maxPrice);
 
@@ -305,7 +396,7 @@ function SearchContent() {
           </p>
         </div>
 
-        {/* Search input in page */}
+        {/* Search input */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <div className="relative w-full md:w-80">
             <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -336,7 +427,7 @@ function SearchContent() {
             className="md:hidden flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider bg-white border border-neutral-200 rounded-xl"
           >
             <Filter className="w-4 h-4" />
-            <span>Filters</span>
+            <span>Filters ({selectedColors.length + selectedSizes.length + (category ? 1 : 0) + (brand ? 1 : 0)})</span>
           </button>
         </div>
       </div>
@@ -351,7 +442,7 @@ function SearchContent() {
 
       {/* Active Filter Chips & Sort Controls */}
       <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-b border-neutral-100">
-        {/* Chips */}
+        {/* Active Chips */}
         <div className="flex flex-wrap items-center gap-2">
           {hasActiveFilters && (
             <button
@@ -384,27 +475,43 @@ function SearchContent() {
             </span>
           )}
 
-          {selectedColor && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-neutral-100 text-neutral-800 rounded-full">
-              Color:{" "}
-              {colors.find((c) => c._id === selectedColor)?.name || "Selected"}
-              <X
-                className="w-3 h-3 cursor-pointer hover:text-black ml-1"
-                onClick={() => setSelectedColor("")}
-              />
-            </span>
-          )}
+          {/* Color Chips */}
+          {selectedColors.map((colId) => {
+            const col = colors.find((c) => c._id === colId);
+            return (
+              <span
+                key={colId}
+                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-neutral-900 text-white rounded-full"
+              >
+                <span
+                  style={{ backgroundColor: col?.code || "#ccc" }}
+                  className="w-2 h-2 rounded-full border border-white/20"
+                />
+                <span className="capitalize">{col?.name || "Color"}</span>
+                <X
+                  className="w-3 h-3 cursor-pointer hover:text-neutral-300 ml-1"
+                  onClick={() => toggleColor(colId)}
+                />
+              </span>
+            );
+          })}
 
-          {selectedSize && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-neutral-100 text-neutral-800 rounded-full">
-              Size:{" "}
-              {sizes.find((s) => s._id === selectedSize)?.name || "Selected"}
-              <X
-                className="w-3 h-3 cursor-pointer hover:text-black ml-1"
-                onClick={() => setSelectedSize("")}
-              />
-            </span>
-          )}
+          {/* Size Chips */}
+          {selectedSizes.map((sizeId) => {
+            const sz = sizes.find((s) => s._id === sizeId);
+            return (
+              <span
+                key={sizeId}
+                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-neutral-900 text-white rounded-full"
+              >
+                <span>Size: {sz?.name || "Size"}</span>
+                <X
+                  className="w-3 h-3 cursor-pointer hover:text-neutral-300 ml-1"
+                  onClick={() => toggleSize(sizeId)}
+                />
+              </span>
+            );
+          })}
 
           {(minPrice || maxPrice) && (
             <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium bg-neutral-100 text-neutral-800 rounded-full">
@@ -529,26 +636,33 @@ function SearchContent() {
             </div>
           </div>
 
-          {/* Colors */}
+          {/* Multiple Colors */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-900 mb-3 font-mono">
-              Colors
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-900 font-mono">
+                Colors
+              </h3>
+              {selectedColors.length > 0 && (
+                <button
+                  onClick={() => setSelectedColors([])}
+                  className="text-[10px] text-neutral-400 hover:text-black font-semibold uppercase tracking-wider"
+                >
+                  Reset ({selectedColors.length})
+                </button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
               {colors.map((c) => {
-                const isSelected = selectedColor === c._id;
+                const isSelected = selectedColors.includes(c._id);
                 return (
                   <button
                     key={c._id}
-                    onClick={() => {
-                      setSelectedColor(isSelected ? "" : c._id);
-                      setPage(1);
-                    }}
+                    onClick={() => toggleColor(c._id)}
                     title={c.name}
                     className={clsx(
-                      "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition-all",
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-all",
                       isSelected
-                        ? "border-black bg-neutral-900 text-white"
+                        ? "border-black bg-neutral-900 text-white shadow-sm ring-1 ring-black"
                         : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
                     )}
                   >
@@ -557,35 +671,44 @@ function SearchContent() {
                       className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0"
                     />
                     <span className="capitalize">{c.name}</span>
+                    {isSelected && <Check className="w-3 h-3 ml-0.5 text-white" />}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Sizes */}
+          {/* Multiple Sizes */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-900 mb-3 font-mono">
-              Sizes
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-900 font-mono">
+                Sizes
+              </h3>
+              {selectedSizes.length > 0 && (
+                <button
+                  onClick={() => setSelectedSizes([])}
+                  className="text-[10px] text-neutral-400 hover:text-black font-semibold uppercase tracking-wider"
+                >
+                  Reset ({selectedSizes.length})
+                </button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2">
               {sizes.map((s) => {
-                const isSelected = selectedSize === s._id;
+                const isSelected = selectedSizes.includes(s._id);
                 return (
                   <button
                     key={s._id}
-                    onClick={() => {
-                      setSelectedSize(isSelected ? "" : s._id);
-                      setPage(1);
-                    }}
+                    onClick={() => toggleSize(s._id)}
                     className={clsx(
-                      "px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all",
+                      "flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all",
                       isSelected
-                        ? "border-black bg-neutral-900 text-white"
+                        ? "border-black bg-neutral-900 text-white shadow-sm ring-1 ring-black"
                         : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400"
                     )}
                   >
-                    {s.name}
+                    <span>{s.name}</span>
+                    {isSelected && <Check className="w-3 h-3 text-white" />}
                   </button>
                 );
               })}
@@ -652,7 +775,9 @@ function SearchContent() {
                   </button>
 
                   <div className="flex items-center gap-1 px-3 text-xs font-semibold text-neutral-600">
-                    <span>Page {page} of {totalPages}</span>
+                    <span>
+                      Page {page} of {totalPages}
+                    </span>
                   </div>
 
                   <button
@@ -778,59 +903,81 @@ function SearchContent() {
               </div>
             </div>
 
-            {/* Mobile Colors */}
+            {/* Mobile Colors (Multiple) */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900 mb-2">
-                Colors
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {colors.map((c) => (
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900">
+                  Colors
+                </h3>
+                {selectedColors.length > 0 && (
                   <button
-                    key={c._id}
-                    onClick={() => {
-                      setSelectedColor(selectedColor === c._id ? "" : c._id);
-                      setPage(1);
-                    }}
-                    className={clsx(
-                      "px-2.5 py-1 rounded-full text-xs border flex items-center gap-1",
-                      selectedColor === c._id
-                        ? "border-black bg-black text-white"
-                        : "border-neutral-200 text-neutral-700"
-                    )}
+                    onClick={() => setSelectedColors([])}
+                    className="text-[10px] text-neutral-400 font-semibold"
                   >
-                    <span
-                      style={{ backgroundColor: c.code || "#ccc" }}
-                      className="w-2 h-2 rounded-full border border-black/10"
-                    />
-                    <span className="capitalize">{c.name}</span>
+                    Reset ({selectedColors.length})
                   </button>
-                ))}
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {colors.map((c) => {
+                  const isSelected = selectedColors.includes(c._id);
+                  return (
+                    <button
+                      key={c._id}
+                      onClick={() => toggleColor(c._id)}
+                      className={clsx(
+                        "px-2.5 py-1 rounded-full text-xs border flex items-center gap-1 transition-all",
+                        isSelected
+                          ? "border-black bg-neutral-900 text-white ring-1 ring-black"
+                          : "border-neutral-200 text-neutral-700 bg-white"
+                      )}
+                    >
+                      <span
+                        style={{ backgroundColor: c.code || "#ccc" }}
+                        className="w-2 h-2 rounded-full border border-black/10"
+                      />
+                      <span className="capitalize">{c.name}</span>
+                      {isSelected && <Check className="w-2.5 h-2.5 ml-0.5" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Mobile Sizes */}
+            {/* Mobile Sizes (Multiple) */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900 mb-2">
-                Sizes
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {sizes.map((s) => (
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900">
+                  Sizes
+                </h3>
+                {selectedSizes.length > 0 && (
                   <button
-                    key={s._id}
-                    onClick={() => {
-                      setSelectedSize(selectedSize === s._id ? "" : s._id);
-                      setPage(1);
-                    }}
-                    className={clsx(
-                      "px-2.5 py-1 rounded-lg text-xs font-semibold border",
-                      selectedSize === s._id
-                        ? "border-black bg-black text-white"
-                        : "border-neutral-200 text-neutral-700"
-                    )}
+                    onClick={() => setSelectedSizes([])}
+                    className="text-[10px] text-neutral-400 font-semibold"
                   >
-                    {s.name}
+                    Reset ({selectedSizes.length})
                   </button>
-                ))}
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {sizes.map((s) => {
+                  const isSelected = selectedSizes.includes(s._id);
+                  return (
+                    <button
+                      key={s._id}
+                      onClick={() => toggleSize(s._id)}
+                      className={clsx(
+                        "px-2.5 py-1 rounded-lg text-xs font-semibold border flex items-center gap-1 transition-all",
+                        isSelected
+                          ? "border-black bg-neutral-900 text-white ring-1 ring-black"
+                          : "border-neutral-200 text-neutral-700 bg-white"
+                      )}
+                    >
+                      <span>{s.name}</span>
+                      {isSelected && <Check className="w-2.5 h-2.5" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -848,9 +995,9 @@ function SearchContent() {
                     setMinPrice(e.target.value);
                     setPage(1);
                   }}
-                  className="w-1/2 p-2 text-xs border border-neutral-200 rounded-lg"
+                  className="w-1/2 p-2 text-xs border border-neutral-200 rounded-lg bg-white"
                 />
-                <span>-</span>
+                <span className="text-neutral-400">-</span>
                 <input
                   type="number"
                   placeholder="Max"
@@ -859,7 +1006,7 @@ function SearchContent() {
                     setMaxPrice(e.target.value);
                     setPage(1);
                   }}
-                  className="w-1/2 p-2 text-xs border border-neutral-200 rounded-lg"
+                  className="w-1/2 p-2 text-xs border border-neutral-200 rounded-lg bg-white"
                 />
               </div>
             </div>
@@ -879,7 +1026,13 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="py-24 text-center"><ComponentLoader /></div>}>
+    <Suspense
+      fallback={
+        <div className="py-24 text-center">
+          <ComponentLoader />
+        </div>
+      }
+    >
       <SearchContent />
     </Suspense>
   );
