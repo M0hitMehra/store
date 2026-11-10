@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { server } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 import useAuthStore from "@/stores/useAuthStore";
-import useProtectedRoute from "@/hooks/useProtectedRoute";
 import Loader from "@/components/loader";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useProtectedRoute();
+  const user = useAuthStore((state) => state.user);
+  const authLoading = useAuthStore((state) => state.loading);
   const setUser = useAuthStore((state) => state.setUser);
 
   const [email, setEmail] = useState("");
@@ -22,17 +22,18 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, authLoading, router]);
+
   if (authLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <Loader />
       </div>
     );
-  }
-
-  if (user) {
-    router.replace("/dashboard");
-    return null;
   }
 
   const handleLogin = async (e) => {

@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Eye, EyeOff, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { server } from "@/lib/utils";
 import { toast } from "@/components/ui/use-toast";
 import useAuthStore from "@/stores/useAuthStore";
-import useProtectedRoute from "@/hooks/useProtectedRoute";
 import Loader from "@/components/loader";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useProtectedRoute();
+  const user = useAuthStore((state) => state.user);
+  const authLoading = useAuthStore((state) => state.loading);
   const setUser = useAuthStore((state) => state.setUser);
 
   const [formData, setFormData] = useState({
@@ -34,17 +34,19 @@ export default function SignupPage() {
   const [otpValue, setOtpValue] = useState("");
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
+  useEffect(() => {
+    // If user is already logged in and not verifying OTP, redirect to dashboard
+    if (!authLoading && user && !showOtpDialog) {
+      router.replace("/dashboard");
+    }
+  }, [user, authLoading, showOtpDialog, router]);
+
   if (authLoading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
         <Loader />
       </div>
     );
-  }
-
-  if (user && !showOtpDialog) {
-    router.replace("/dashboard");
-    return null;
   }
 
   const handleChange = (e) => {
