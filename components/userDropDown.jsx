@@ -36,20 +36,20 @@ const UserDropDown = () => {
 
   const logoutHandler = async () => {
     try {
-      const { data } = await axios.get(`${server}/auth/logout`, {
+      await axios.get(`${server}/auth/logout`, {
         withCredentials: true,
       });
-      if (data?.success) {
-        setUser(null);
-        toast({
-          title: "Logged out successfully",
-          description: "See you next time!",
-        });
-        router.push("/login");
-      }
     } catch (error) {
       console.error(error);
+    } finally {
       setUser(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("auth-storage");
+      }
+      toast({
+        title: "Logged out successfully",
+        description: "See you next time!",
+      });
       router.push("/login");
     }
   };
